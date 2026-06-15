@@ -11,19 +11,7 @@ struct ContentView: View {
     @Environment(AuthManager.self) var authManager
     
     var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-            
-            Button("Sign Out") {
-                authManager.signOut()
-            }
-            .foregroundColor(.red)
-            .padding(.top, 40)
-        }
-        .padding()
+        EventListView()
     }
 }
 
