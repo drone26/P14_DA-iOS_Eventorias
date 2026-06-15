@@ -78,8 +78,11 @@ struct EventListView: View {
                     ScrollView {
                         LazyVStack(spacing: 16) {
                             ForEach(viewModel.events) { event in
-                                EventRowView(event: event)
-                                    .padding(.horizontal)
+                                NavigationLink(destination: EventDetailView(event: event)) {
+                                    EventRowView(event: event)
+                                        .padding(.horizontal)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         .padding(.bottom, 80) // space for FAB
