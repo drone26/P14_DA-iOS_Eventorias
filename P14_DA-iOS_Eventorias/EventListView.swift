@@ -65,13 +65,7 @@ struct EventListView: View {
                         Text("Aucun événement trouvé.")
                             .foregroundColor(.gray)
                         
-                        Button("Générer des données de test") {
-                            viewModel.addMockData()
-                        }
-                        .padding()
-                        .background(Color(red: 0.85, green: 0.1, blue: 0.15))
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
+
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
