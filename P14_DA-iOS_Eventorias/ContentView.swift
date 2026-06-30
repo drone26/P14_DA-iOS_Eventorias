@@ -12,14 +12,14 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-            NavigationView {
+            NavigationStack {
                 EventListView()
             }
             .tabItem {
                 Label("Events", systemImage: "calendar")
             }
             
-            NavigationView {
+            NavigationStack {
                 // Espace réservé pour la vue Profil (ne pas créer de fichier comme demandé)
                 ZStack {
                     Color(red: 0.12, green: 0.12, blue: 0.14).ignoresSafeArea()

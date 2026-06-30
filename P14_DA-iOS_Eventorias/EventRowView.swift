@@ -43,13 +43,14 @@ struct EventRowView: View {
                     switch phase {
                     case .empty:
                         Color.gray.opacity(0.3)
+                            .overlay(ProgressView())
                     case .success(let image):
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                     case .failure:
                         Color.gray.opacity(0.3)
-                            .overlay(Image(systemName: "photo").foregroundColor(.gray))
+                            .overlay(Image(systemName: "exclamationmark.triangle").foregroundColor(.red))
                     @unknown default:
                         EmptyView()
                     }

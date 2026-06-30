@@ -114,19 +114,14 @@ struct EventListView: View {
         .onAppear {
             viewModel.fetchEvents()
         }
-        .sheet(isPresented: $showCreateEvent) {
-            ZStack {
-                Color(red: 0.12, green: 0.12, blue: 0.14).ignoresSafeArea()
-                Text("Écran de création (à venir)")
-                    .foregroundColor(.white)
-            }
-            .presentationDetents([.medium])
+        .navigationDestination(isPresented: $showCreateEvent) {
+            EventCreationView()
         }
     }
 }
 
 #Preview {
-    NavigationView {
+    NavigationStack {
         EventListView()
     }
 }
