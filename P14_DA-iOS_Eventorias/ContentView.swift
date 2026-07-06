@@ -20,13 +20,7 @@ struct ContentView: View {
             }
             
             NavigationStack {
-                // Espace réservé pour la vue Profil (ne pas créer de fichier comme demandé)
-                ZStack {
-                    Color(red: 0.12, green: 0.12, blue: 0.14).ignoresSafeArea()
-                    Text("Vue Profil (À venir)")
-                        .foregroundColor(.white)
-                }
-                .navigationTitle("Profile")
+                ProfileView()
             }
             .tabItem {
                 Label("Profile", systemImage: "person")
