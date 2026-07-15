@@ -18,6 +18,7 @@ struct ContentView: View {
             .tabItem {
                 Label("Events", systemImage: "calendar")
             }
+            .accessibilityIdentifier("events_tab")
             
             NavigationStack {
                 ProfileView()
@@ -25,6 +26,7 @@ struct ContentView: View {
             .tabItem {
                 Label("Profile", systemImage: "person")
             }
+            .accessibilityIdentifier("profile_tab")
         }
         .accentColor(Color(red: 0.85, green: 0.1, blue: 0.15))
         .preferredColorScheme(.dark)

@@ -24,6 +24,7 @@ struct EventCreationView: View {
                                 .foregroundColor(.gray)
                             TextField("New event", text: $viewModel.title)
                                 .foregroundColor(.white)
+                                .accessibilityIdentifier("event_title_field")
                         }
                         .padding()
                         .background(Color(white: 0.3))
@@ -39,6 +40,7 @@ struct EventCreationView: View {
                                 .scrollContentBackground(.hidden)
                                 .background(Color.clear)
                                 .foregroundColor(.white)
+                                .accessibilityIdentifier("event_description_field")
                         }
                         .padding()
                         .background(Color(white: 0.3))
@@ -54,6 +56,7 @@ struct EventCreationView: View {
                                     .labelsHidden()
                                     .colorScheme(.dark)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                                    .accessibilityIdentifier("event_date_picker")
                             }
                             .padding()
                             .background(Color(white: 0.3))
@@ -67,6 +70,7 @@ struct EventCreationView: View {
                                     .labelsHidden()
                                     .colorScheme(.dark)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                                    .accessibilityIdentifier("event_time_picker")
                             }
                             .padding()
                             .background(Color(white: 0.3))
@@ -80,6 +84,7 @@ struct EventCreationView: View {
                                 .foregroundColor(.gray)
                             TextField("Enter full address", text: $viewModel.address)
                                 .foregroundColor(.white)
+                                .accessibilityIdentifier("event_address_field")
                         }
                         .padding()
                         .background(Color(white: 0.3))
@@ -97,6 +102,7 @@ struct EventCreationView: View {
                                     .background(Color.white)
                                     .cornerRadius(16)
                             }
+                            .accessibilityIdentifier("camera_button")
                             
                             PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                                 Image(systemName: "paperclip")
@@ -106,6 +112,7 @@ struct EventCreationView: View {
                                     .background(Color(red: 0.85, green: 0.1, blue: 0.15))
                                     .cornerRadius(16)
                             }
+                            .accessibilityIdentifier("photo_library_button")
                             .onChange(of: selectedPhotoItem) { _, newItem in
                                 Task {
                                     if let data = try? await newItem?.loadTransferable(type: Data.self),
@@ -162,6 +169,7 @@ struct EventCreationView: View {
                     .cornerRadius(8)
                 }
                 .disabled(viewModel.isLoading)
+                .accessibilityIdentifier("save_event_button")
                 .padding()
             }
         }

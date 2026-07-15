@@ -7,6 +7,26 @@ import Observation
 import FirebaseAuth
 import MapKit
 
+final class DefaultGeocodingService: @unchecked Sendable, GeocodingServiceProtocol {
+    func validateAddress(_ address: String, completion: @escaping (String?, Error?) -> Void) {
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = address
+        let search = MKLocalSearch(request: request)
+        
+        search.start { response, error in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            if let mapItem = response?.mapItems.first {
+                completion(mapItem.name ?? address, nil)
+            } else {
+                completion(nil, nil)
+            }
+        }
+    }
+}
+
 @MainActor
 @Observable
 class EventCreationViewModel {
@@ -20,6 +40,18 @@ class EventCreationViewModel {
     
     var isLoading = false
     var errorMessage: String?
+    
+    private let eventRepository: EventRepositoryProtocol
+    private let storageService: ImageStorageServiceProtocol
+    private let geocodingService: GeocodingServiceProtocol
+    
+    init(eventRepository: EventRepositoryProtocol? = nil,
+         storageService: ImageStorageServiceProtocol? = nil,
+         geocodingService: GeocodingServiceProtocol? = nil) {
+        self.eventRepository = eventRepository ?? FirebaseEventRepository()
+        self.storageService = storageService ?? FirebaseImageStorageService()
+        self.geocodingService = geocodingService ?? DefaultGeocodingService()
+    }
     
     func createEvent(authManager: AuthManager, completion: @escaping (Bool) -> Void) {
         guard !title.isEmpty, !description.isEmpty, !address.isEmpty else {
@@ -55,15 +87,10 @@ class EventCreationViewModel {
             return
         }
         
-        // Geocode address using MKLocalSearch
-        let request = MKLocalSearch.Request()
-        request.naturalLanguageQuery = address
-        let search = MKLocalSearch(request: request)
-        
-        search.start { [weak self] response, error in
-            guard let self = self else { return }
-            
+        geocodingService.validateAddress(address) { [weak self] validatedAddress, error in
             Task { @MainActor in
+                guard let self = self else { return }
+                
                 if let error = error {
                     self.errorMessage = "Address not found: \(error.localizedDescription)"
                     self.isLoading = false
@@ -71,16 +98,12 @@ class EventCreationViewModel {
                     return
                 }
                 
-                guard let mapItem = response?.mapItems.first else {
+                guard let validatedAddress = validatedAddress else {
                     self.errorMessage = "Could not validate address."
                     self.isLoading = false
                     completion(false)
                     return
                 }
-                
-                // Format address properly
-                // Since `placemark` is deprecated, we can use the map item's name or fallback to the validated user input.
-                let validatedAddress = mapItem.name ?? self.address
                 
                 self.uploadImageAndSaveEvent(
                     title: self.title,
@@ -103,13 +126,9 @@ class EventCreationViewModel {
                 return
             }
             
-            let storage = Storage.storage(url: "gs://p14-eventorias-3818.firebasestorage.app")
-            let storageRef = storage.reference().child("event_images/\(UUID().uuidString).jpg")
+            let path = "event_images/\(UUID().uuidString).jpg"
             
-            let metadata = StorageMetadata()
-            metadata.contentType = "image/jpeg"
-            
-            storageRef.putData(imageData, metadata: metadata) { [weak self] uploadedMeta, error in
+            storageService.uploadImage(imageData, path: path) { [weak self] url, error in
                 guard let self = self else { return }
                 
                 Task { @MainActor in
@@ -120,18 +139,7 @@ class EventCreationViewModel {
                         return
                     }
                     
-                    storageRef.downloadURL { url, error in
-                        Task { @MainActor in
-                            if let error = error {
-                                self.errorMessage = "Failed to get image URL: \(error.localizedDescription)"
-                                self.isLoading = false
-                                completion(false)
-                                return
-                            }
-                            
-                            self.saveEventToFirestore(title: title, description: description, date: date, address: address, creatorId: creatorId, imageUrl: url?.absoluteString, completion: completion)
-                        }
-                    }
+                    self.saveEventToFirestore(title: title, description: description, date: date, address: address, creatorId: creatorId, imageUrl: url?.absoluteString, completion: completion)
                 }
             }
         } else {
@@ -140,7 +148,6 @@ class EventCreationViewModel {
     }
     
     private func saveEventToFirestore(title: String, description: String, date: Date, address: String, creatorId: String, imageUrl: String?, completion: @escaping (Bool) -> Void) {
-        let db = Firestore.firestore()
         let event = Event(
             title: title,
             description: description,
@@ -150,23 +157,17 @@ class EventCreationViewModel {
             coverImageUrl: imageUrl
         )
         
-        do {
-            let _ = try db.collection("events").addDocument(from: event) { error in
-                Task { @MainActor in
-                    if let error = error {
-                        self.errorMessage = "Failed to save event: \(error.localizedDescription)"
-                        self.isLoading = false
-                        completion(false)
-                    } else {
-                        self.isLoading = false
-                        completion(true)
-                    }
+        eventRepository.addEvent(event) { [weak self] error in
+            Task { @MainActor in
+                if let error = error {
+                    self?.errorMessage = "Failed to save event: \(error.localizedDescription)"
+                    self?.isLoading = false
+                    completion(false)
+                } else {
+                    self?.isLoading = false
+                    completion(true)
                 }
             }
-        } catch {
-            self.errorMessage = "Failed to encode event: \(error.localizedDescription)"
-            self.isLoading = false
-            completion(false)
         }
     }
 }

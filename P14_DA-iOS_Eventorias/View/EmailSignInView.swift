@@ -15,6 +15,9 @@ struct EmailSignInView: View {
         ZStack {
             Color(red: 0.12, green: 0.12, blue: 0.14)
                 .ignoresSafeArea()
+                .onTapGesture {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
             
             VStack(spacing: 24) {
                 Text(viewModel.isRegistering ? "Create Account" : "Sign In")
@@ -32,6 +35,8 @@ struct EmailSignInView: View {
                         .cornerRadius(8)
                         .foregroundColor(.white)
                         .accentColor(.red)
+                        .accessibilityIdentifier("email_field")
+                        .submitLabel(.next)
                     
                     SecureField("", text: $viewModel.password, prompt: Text("Password").foregroundColor(.white.opacity(0.6)))
                         .padding()
@@ -39,6 +44,11 @@ struct EmailSignInView: View {
                         .cornerRadius(8)
                         .foregroundColor(.white)
                         .accentColor(.red)
+                        .accessibilityIdentifier("password_field")
+                        .submitLabel(.done)
+                        .onSubmit {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
                 }
                 .padding(.horizontal, 24)
                 
@@ -48,9 +58,11 @@ struct EmailSignInView: View {
                         .font(.footnote)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
+                        .accessibilityIdentifier("error_message_text")
                 }
                 
                 Button(action: {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     viewModel.authenticate()
                 }) {
                     if viewModel.isLoading {
@@ -69,6 +81,7 @@ struct EmailSignInView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 8)
                 .disabled(viewModel.isLoading || viewModel.email.isEmpty || viewModel.password.isEmpty)
+                .accessibilityIdentifier("authenticate_button")
                 
                 Button(action: {
                     viewModel.toggleRegistering()
@@ -78,6 +91,7 @@ struct EmailSignInView: View {
                         .font(.subheadline)
                 }
                 .padding(.top, 16)
+                .accessibilityIdentifier("toggle_register_button")
                 
                 Spacer()
             }

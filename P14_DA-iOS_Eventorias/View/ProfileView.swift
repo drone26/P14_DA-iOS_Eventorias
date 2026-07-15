@@ -17,6 +17,7 @@ struct ProfileView: View {
                 .ignoresSafeArea()
                 .onTapGesture {
                     isNameFocused = false
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                 }
             
             VStack(alignment: .leading, spacing: 24) {
@@ -74,6 +75,7 @@ struct ProfileView: View {
                                 .offset(x: 4, y: 4)
                         }
                     }
+                    .accessibilityIdentifier("profile_avatar_button")
                     .confirmationDialog("Choose Avatar", isPresented: $showSourceSelector, titleVisibility: .visible) {
                         Button("Camera") {
                             imageSource = .camera
@@ -117,11 +119,13 @@ struct ProfileView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .submitLabel(.done)
+                        .accessibilityIdentifier("profile_name_field")
                         .onSubmit {
                             isNameFocused = false
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                         }
                         .onChange(of: isNameFocused) { oldValue, newValue in
-                            if oldValue == true && newValue == false {
+                            if oldValue && !newValue {
                                 if let newName = viewModel.profile?.name {
                                     viewModel.saveName(authManager: authManager, newName: newName)
                                 }
@@ -140,6 +144,7 @@ struct ProfileView: View {
                         Text(viewModel.profile?.email ?? "")
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("profile_email_text")
                     }
                     .padding()
                     .background(Color(white: 0.3))
@@ -155,8 +160,24 @@ struct ProfileView: View {
                     }
                     .tint(Color(red: 0.85, green: 0.1, blue: 0.15))
                     .padding(.top, 8)
+                    .accessibilityIdentifier("profile_notifications_toggle")
                     
                     Spacer()
+                    
+                    // Sign Out Button
+                    Button(action: {
+                        authManager.signOut()
+                    }) {
+                        Text("Sign Out")
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color(red: 0.85, green: 0.1, blue: 0.15))
+                            .cornerRadius(8)
+                    }
+                    .accessibilityIdentifier("sign_out_button")
+                    .padding(.bottom, 20)
                 }
             }
             .padding()

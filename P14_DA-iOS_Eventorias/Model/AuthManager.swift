@@ -12,12 +12,14 @@ import Observation
 @Observable
 class AuthManager {
     var isAuthenticated: Bool = false
-    var currentUser: User?
+    var currentUser: AppUserProtocol?
     
+    private let authService: AuthServiceProtocol
     private var authStateListenerHandle: AuthStateDidChangeListenerHandle?
     
-    init() {
-        self.authStateListenerHandle = Auth.auth().addStateDidChangeListener { [weak self] auth, user in
+    init(authService: AuthServiceProtocol = Auth.auth()) {
+        self.authService = authService
+        self.authStateListenerHandle = self.authService.addStateDidChangeListener { [weak self] auth, user in
             self?.currentUser = user
             self?.isAuthenticated = user != nil
         }
@@ -25,13 +27,13 @@ class AuthManager {
     
     deinit {
         if let handle = authStateListenerHandle {
-            Auth.auth().removeStateDidChangeListener(handle)
+            authService.removeStateDidChangeListener(handle)
         }
     }
     
     func signOut() {
         do {
-            try Auth.auth().signOut()
+            try authService.signOut()
         } catch {
             print("Error signing out: \(error.localizedDescription)")
         }

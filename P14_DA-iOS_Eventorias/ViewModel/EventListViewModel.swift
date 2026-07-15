@@ -23,40 +23,20 @@ class EventListViewModel {
     var isLoading = false
     var errorMessage: String?
     
-    private let db = Firestore.firestore()
-    private var listener: ListenerRegistration?
+    private let eventRepository: EventRepositoryProtocol
+    private var listenerRegistration: ListenerRegistrationProtocol?
+    
+    init(eventRepository: EventRepositoryProtocol? = nil) {
+        self.eventRepository = eventRepository ?? FirebaseEventRepository()
+    }
     
     func fetchEvents() {
         isLoading = true
         errorMessage = nil
         
-        listener?.remove()
+        listenerRegistration?.remove()
         
-        var query: Query = db.collection("events")
-        
-        // Firestore requires composite indexes for complex queries.
-        // For simplicity, we use only one orderBy if there is no range filter.
-        // However, a range filter on titleLower requires the first orderBy to be titleLower.
-        
-        let isSearching = !searchQuery.isEmpty
-        
-        if isSearching {
-            let lowerQuery = searchQuery.lowercased()
-            query = query.whereField("searchTokens", arrayContains: lowerQuery)
-        } else {
-            // Sorting is only applied in Firestore when not searching
-            // to avoid complex composite index requirements.
-            switch sortOption {
-            case .dateAsc:
-                query = query.order(by: "date", descending: false)
-            case .dateDesc:
-                query = query.order(by: "date", descending: true)
-            case .titleAsc:
-                query = query.order(by: "titleLower", descending: false)
-            }
-        }
-        
-        listener = query.addSnapshotListener { [weak self] snapshot, error in
+        listenerRegistration = eventRepository.fetchEvents(searchQuery: searchQuery, sortOption: sortOption) { [weak self] fetchedEvents, error in
             guard let self = self else { return }
             self.isLoading = false
             
@@ -65,32 +45,16 @@ class EventListViewModel {
                 return
             }
             
-            guard let documents = snapshot?.documents else {
+            if let fetchedEvents = fetchedEvents {
+                self.events = fetchedEvents
+            } else {
                 self.events = []
-                return
             }
-            
-            var fetchedEvents = documents.compactMap { doc -> Event? in
-                try? doc.data(as: Event.self)
-            }
-            
-            if isSearching {
-                switch self.sortOption {
-                case .dateAsc:
-                    fetchedEvents.sort { $0.date < $1.date }
-                case .dateDesc:
-                    fetchedEvents.sort { $0.date > $1.date }
-                case .titleAsc:
-                    fetchedEvents.sort { ($0.titleLower ?? "") < ($1.titleLower ?? "") }
-                }
-            }
-            
-            self.events = fetchedEvents
         }
     }
     
     deinit {
-        listener?.remove()
+        listenerRegistration?.remove()
     }
     
     func addMockData() {
@@ -102,10 +66,10 @@ class EventListViewModel {
         ]
         
         for event in sampleEvents {
-            do {
-                _ = try db.collection("events").addDocument(from: event)
-            } catch {
-                print("Error adding mock event: \(error)")
+            eventRepository.addEvent(event) { error in
+                if let error = error {
+                    print("Error adding mock event: \(error)")
+                }
             }
         }
     }

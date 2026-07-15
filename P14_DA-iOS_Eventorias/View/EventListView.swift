@@ -44,6 +44,7 @@ struct EventListView: View {
                         .foregroundColor(.white)
                         .cornerRadius(20)
                     }
+                    .accessibilityIdentifier("sort_menu")
                     
                     Spacer()
                 }
@@ -54,12 +55,11 @@ struct EventListView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if let error = viewModel.errorMessage {
-                    Text(error)
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if viewModel.errorMessage != nil {
+                    ErrorStateView {
+                        viewModel.fetchEvents()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if viewModel.events.isEmpty {
                     VStack(spacing: 20) {
                         Text("Aucun événement trouvé.")
@@ -77,6 +77,7 @@ struct EventListView: View {
                                         .padding(.horizontal)
                                 }
                                 .buttonStyle(PlainButtonStyle())
+                                .accessibilityIdentifier("event_row_\(event.title)")
                             }
                         }
                         .padding(.bottom, 80) // space for FAB
@@ -100,6 +101,7 @@ struct EventListView: View {
                             .clipShape(Circle())
                             .shadow(radius: 4, x: 0, y: 4)
                     }
+                    .accessibilityIdentifier("create_event_fab")
                     .padding(.trailing, 24)
                     .padding(.bottom, 24)
                 }
@@ -120,8 +122,53 @@ struct EventListView: View {
     }
 }
 
+/// Full-screen error placeholder shown when event loading fails, with a retry action.
+struct ErrorStateView: View {
+    let retryAction: () -> Void
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark")
+                .font(.system(size: 36, weight: .bold))
+                .foregroundColor(.white)
+                .frame(width: 90, height: 90)
+                .background(Color(white: 0.35))
+                .clipShape(Circle())
+
+            Text("Error")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+
+            Text("An error has occured,\nplease try again later")
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+
+            Button(action: retryAction) {
+                Text("Try again")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 40)
+                    .padding(.vertical, 16)
+                    .background(Color(red: 0.85, green: 0.1, blue: 0.15))
+                    .cornerRadius(8)
+            }
+            .accessibilityIdentifier("error_retry_button")
+            .padding(.top, 8)
+        }
+        .padding()
+        .accessibilityIdentifier("error_state_view")
+    }
+}
+
 #Preview {
     NavigationStack {
         EventListView()
     }
+}
+
+#Preview("Error State") {
+    ErrorStateView {}
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(red: 0.12, green: 0.12, blue: 0.14))
 }
