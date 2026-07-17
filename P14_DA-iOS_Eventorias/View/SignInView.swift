@@ -44,6 +44,7 @@ struct SignInView: View {
                         .background(Color(red: 0.85, green: 0.1, blue: 0.15)) // Firebase red
                         .cornerRadius(4)
                     }
+                    .accessibilityIdentifier("sign_in_with_email_button")
                     .padding(.horizontal, 40)
                     .padding(.bottom, 60)
                 }

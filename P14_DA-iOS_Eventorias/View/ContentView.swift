@@ -12,25 +12,21 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-            NavigationView {
+            NavigationStack {
                 EventListView()
             }
             .tabItem {
                 Label("Events", systemImage: "calendar")
             }
+            .accessibilityIdentifier("events_tab")
             
-            NavigationView {
-                // Espace réservé pour la vue Profil (ne pas créer de fichier comme demandé)
-                ZStack {
-                    Color(red: 0.12, green: 0.12, blue: 0.14).ignoresSafeArea()
-                    Text("Vue Profil (À venir)")
-                        .foregroundColor(.white)
-                }
-                .navigationTitle("Profile")
+            NavigationStack {
+                ProfileView()
             }
             .tabItem {
                 Label("Profile", systemImage: "person")
             }
+            .accessibilityIdentifier("profile_tab")
         }
         .accentColor(Color(red: 0.85, green: 0.1, blue: 0.15))
         .preferredColorScheme(.dark)

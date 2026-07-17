@@ -11,5 +11,9 @@
 		<key>UILaunchScreen</key>
 		<dict/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to the camera to take a photo for the event.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to pick an image for the event.</string>
 </dict>
 </plist>

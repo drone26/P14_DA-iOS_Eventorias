@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseAuth
 import Observation
+import UIKit
 
 @Observable
 class EmailSignInViewModel {
@@ -17,7 +18,16 @@ class EmailSignInViewModel {
     var errorMessage = ""
     var isLoading = false
     
+    private let authService: AuthServiceProtocol
+    
+    init(authService: AuthServiceProtocol = Auth.auth()) {
+        self.authService = authService
+    }
+    
     func authenticate() {
+        // Force dismiss keyboard before starting network request
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        
         errorMessage = ""
         
         if isRegistering {
@@ -30,14 +40,14 @@ class EmailSignInViewModel {
         isLoading = true
         
         if isRegistering {
-            Auth.auth().createUser(withEmail: email, password: password) { [weak self] result, error in
+            authService.createUser(withEmail: email, password: password) { [weak self] result, error in
                 self?.isLoading = false
                 if let error = error {
                     self?.handleError(error)
                 }
             }
         } else {
-            Auth.auth().signIn(withEmail: email, password: password) { [weak self] result, error in
+            authService.signIn(withEmail: email, password: password) { [weak self] result, error in
                 self?.isLoading = false
                 if let error = error {
                     self?.handleError(error)
