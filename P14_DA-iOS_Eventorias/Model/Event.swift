@@ -12,7 +12,7 @@ struct Event: Identifiable, Codable {
     @DocumentID var id: String?
     var title: String
     var description: String
-    var date: Date // Maps to Firebase Timestamp automatically
+    var date: Date
     var address: String
     var creatorId: String
     var coverImageUrl: String?
