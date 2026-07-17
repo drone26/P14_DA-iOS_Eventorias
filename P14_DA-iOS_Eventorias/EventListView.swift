@@ -65,21 +65,18 @@ struct EventListView: View {
                         Text("Aucun événement trouvé.")
                             .foregroundColor(.gray)
                         
-                        Button("Générer des données de test") {
-                            viewModel.addMockData()
-                        }
-                        .padding()
-                        .background(Color(red: 0.85, green: 0.1, blue: 0.15))
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
+
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 16) {
                             ForEach(viewModel.events) { event in
-                                EventRowView(event: event)
-                                    .padding(.horizontal)
+                                NavigationLink(destination: EventDetailView(event: event)) {
+                                    EventRowView(event: event)
+                                        .padding(.horizontal)
+                                }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         .padding(.bottom, 80) // space for FAB
