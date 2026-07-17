@@ -109,6 +109,15 @@ struct EventListView: View {
         }
         .navigationTitle("Events")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            #if DEBUG
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Add Mock Data") {
+                    viewModel.addMockData()
+                }
+            }
+            #endif
+        }
         .searchable(text: $viewModel.searchQuery, prompt: "Search")
         .onChange(of: viewModel.searchQuery) { _, _ in
             viewModel.fetchEvents()

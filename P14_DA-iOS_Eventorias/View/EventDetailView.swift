@@ -38,7 +38,7 @@ struct EventDetailView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     
                     // Image Principale
-                    if let imageUrl = event.coverImageUrl, let url = URL(string: imageUrl) {
+                    if let imageUrl = event.coverImageUrl, !imageUrl.isEmpty, let url = URL(string: imageUrl) {
                         AsyncImage(url: url) { phase in
                             switch phase {
                             case .empty:
@@ -106,6 +106,8 @@ struct EventDetailView: View {
                         Text(event.address)
                             .font(.subheadline)
                             .foregroundColor(.white)
+                            .lineLimit(nil)
+                            .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("event_detail_address")
                         

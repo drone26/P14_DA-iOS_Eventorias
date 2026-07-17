@@ -32,23 +32,8 @@ struct EventRowView: View {
             .padding()
             
             // Right content: Cover Image
-            if let imageUrl = event.coverImageUrl, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        Color.gray.opacity(0.3)
-                            .overlay(ProgressView())
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    case .failure:
-                        Color.gray.opacity(0.3)
-                            .overlay(Image(systemName: "exclamationmark.triangle").foregroundColor(.red))
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
+            if let imageUrl = event.coverImageUrl, !imageUrl.isEmpty, let url = URL(string: imageUrl) {
+                RetryingAsyncImage(url: url)
                 .frame(width: 120)
                 .clipped()
             } else {
@@ -120,7 +105,7 @@ struct CreatorAvatarView: View {
 }
 
 #Preview {
-    EventRowView(event: Event(title: "Music festival", description: "Awesome music", date: Date(), address: "123 Street", creatorId: "user1", coverImageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=400"))
+    EventRowView(event: Event(title: "Music festival", description: "Awesome music", date: Date(), address: "123 Music Ave, Clovis, CA 93612, United States", creatorId: "user1", coverImageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=400"))
         .padding()
         .background(Color.black)
 }

@@ -26,7 +26,14 @@ final class DefaultGeocodingService: @unchecked Sendable, GeocodingServiceProtoc
                 return
             }
             if let mapItem = response?.mapItems.first {
-                completion(mapItem.name ?? address, nil)
+                if let fullAddress = mapItem.addressRepresentations?.fullAddress(includingRegion: true, singleLine: true) {
+                    completion(fullAddress, nil)
+                } else if let fullAddress = mapItem.address?.fullAddress {
+                    let singleLineAddress = fullAddress.replacingOccurrences(of: "\n", with: ", ")
+                    completion(singleLineAddress, nil)
+                } else {
+                    completion(mapItem.name ?? address, nil)
+                }
             } else {
                 completion(nil, nil)
             }

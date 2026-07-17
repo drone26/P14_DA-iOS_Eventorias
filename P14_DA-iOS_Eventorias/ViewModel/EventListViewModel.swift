@@ -69,10 +69,10 @@ class EventListViewModel {
     
     func addMockData() {
         let sampleEvents = [
-            Event(title: "Music festival", description: "A great music festival.", date: Date().addingTimeInterval(86400 * 10), address: "123 Music Ave", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=400"),
-            Event(title: "Art exhibition", description: "Modern art exhibition.", date: Date().addingTimeInterval(86400 * 40), address: "456 Art St", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&q=80&w=400"),
-            Event(title: "Tech conference", description: "Latest in tech.", date: Date().addingTimeInterval(86400 * 60), address: "789 Tech Blvd", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=400"),
-            Event(title: "Food fair", description: "Delicious food from around the world.", date: Date().addingTimeInterval(86400 * 80), address: "101 Food St", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=400")
+            Event(title: "Music festival", description: "A great music festival.", date: Date().addingTimeInterval(86400 * 10), address: "123 Music Ave, Clovis, CA 93612, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=400"),
+            Event(title: "Art exhibition", description: "Modern art exhibition.", date: Date().addingTimeInterval(86400 * 40), address: "456 Art St, New York, NY 10001, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&q=80&w=400"),
+            Event(title: "Tech conference", description: "Latest in tech.", date: Date().addingTimeInterval(86400 * 60), address: "789 Tech Blvd, San Francisco, CA 94107, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=400"),
+            Event(title: "Food fair", description: "Delicious food from around the world.", date: Date().addingTimeInterval(86400 * 80), address: "101 Food St, Chicago, IL 60601, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=400")
         ]
         
         for event in sampleEvents {
