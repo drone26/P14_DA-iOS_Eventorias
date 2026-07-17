@@ -31,6 +31,16 @@ class EventListViewModel {
     }
     
     func fetchEvents() {
+        #if DEBUG
+        // UI-test hook: force the error state so its UI can be exercised deterministically.
+        if ProcessInfo.processInfo.arguments.contains("-UITestForceEventLoadError") {
+            isLoading = false
+            events = []
+            errorMessage = "An error occurred while loading events."
+            return
+        }
+        #endif
+        
         isLoading = true
         errorMessage = nil
         

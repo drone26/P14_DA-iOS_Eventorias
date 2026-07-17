@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "53A552DC-3DBE-401B-9AE7-47D242016F97",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:P14_DA-iOS_Eventorias.xcodeproj",
+      "identifier" : "39504AAD2FDAAD3B00F05940",
+      "name" : "P14_DA-iOS_Eventorias"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:P14_DA-iOS_Eventorias.xcodeproj",
+        "identifier" : "3934B3042FFBE2F700987154",
+        "name" : "P14_DA-iOS_EventoriasTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:P14_DA-iOS_Eventorias.xcodeproj",
+        "identifier" : "39D5BA672FFF7B9700AFBBD6",
+        "name" : "P14_DA-iOS_EventoriasUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

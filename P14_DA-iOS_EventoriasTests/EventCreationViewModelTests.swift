@@ -1,3 +1,10 @@
+//
+//  EventCreationViewModelTests.swift
+//  EventCreationViewModelTests
+//
+//  Created by Mathieu ARRIO on 09/07/2026.
+//
+
 import XCTest
 import UIKit
 @testable import P14_DA_iOS_Eventorias

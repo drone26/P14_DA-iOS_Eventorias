@@ -121,6 +121,88 @@ class FirebaseEventRepositoryTests: XCTestCase {
         
         wait(for: [expectation], timeout: 1.0)
     }
+    
+    func testFetchEvents_NoSnapshotReturnsEmpty() async {
+        // No snapshot and no error configured: the guard falls through to an empty result.
+        let expectation = XCTestExpectation(description: "Fetch empty")
+        
+        _ = repository.fetchEvents(searchQuery: "", sortOption: .dateAsc) { events, error in
+            XCTAssertNil(error)
+            XCTAssertEqual(events?.count, 0)
+            expectation.fulfill()
+        }
+        
+        await fulfillment(of: [expectation], timeout: 1.0)
+    }
+    
+    func testFetchEvents_WithSearch_DateAsc_SortsLocally() async {
+        let collection = mockFirestore.collection("events") as! MockCollectionReference
+        
+        let snapshot = MockQuerySnapshot()
+        let later = MockDocumentSnapshot()
+        later.dataToReturn = Event(title: "B Event", description: "D", date: Date().addingTimeInterval(100), address: "A", creatorId: "u")
+        let earlier = MockDocumentSnapshot()
+        earlier.dataToReturn = Event(title: "A Event", description: "D", date: Date(), address: "A", creatorId: "u")
+        snapshot.mockDocuments = [later, earlier]
+        collection.snapshotToReturn = snapshot
+        
+        let expectation = XCTestExpectation(description: "Fetch dateAsc")
+        _ = repository.fetchEvents(searchQuery: "Event", sortOption: .dateAsc) { events, error in
+            XCTAssertNil(error)
+            XCTAssertEqual(events?.first?.title, "A Event") // earlier date sorts first
+            expectation.fulfill()
+        }
+        
+        await fulfillment(of: [expectation], timeout: 1.0)
+    }
+    
+    func testFetchEvents_WithSearch_TitleAsc_SortsLocally() async {
+        let collection = mockFirestore.collection("events") as! MockCollectionReference
+        
+        let snapshot = MockQuerySnapshot()
+        let docB = MockDocumentSnapshot()
+        docB.dataToReturn = Event(title: "B Event", description: "D", date: Date(), address: "A", creatorId: "u")
+        let docA = MockDocumentSnapshot()
+        docA.dataToReturn = Event(title: "A Event", description: "D", date: Date().addingTimeInterval(100), address: "A", creatorId: "u")
+        snapshot.mockDocuments = [docB, docA]
+        collection.snapshotToReturn = snapshot
+        
+        let expectation = XCTestExpectation(description: "Fetch titleAsc")
+        _ = repository.fetchEvents(searchQuery: "Event", sortOption: .titleAsc) { events, error in
+            XCTAssertNil(error)
+            XCTAssertEqual(events?.first?.title, "A Event") // titleLower sorts first
+            expectation.fulfill()
+        }
+        
+        await fulfillment(of: [expectation], timeout: 1.0)
+    }
+    
+    func testDeleteEvent_Success() {
+        let collection = mockFirestore.collection("events") as! MockCollectionReference
+        let document = collection.document("event123") as! MockDocumentReference
+        let event = Event(id: "event123", title: "T", description: "D", date: Date(), address: "A", creatorId: "u")
+        
+        let expectation = XCTestExpectation(description: "Delete success")
+        repository.deleteEvent(event) { error in
+            XCTAssertNil(error)
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: 1.0)
+        XCTAssertTrue(document.didDelete)
+    }
+    
+    func testDeleteEvent_NoIdentifier() {
+        let event = Event(title: "T", description: "D", date: Date(), address: "A", creatorId: "u") // id is nil
+        
+        let expectation = XCTestExpectation(description: "Delete missing id")
+        repository.deleteEvent(event) { error in
+            XCTAssertNotNil(error)
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: 1.0)
+    }
 }
 
 @MainActor
@@ -245,5 +327,17 @@ class FirebaseImageStorageServiceTests: XCTestCase {
         }
         
         wait(for: [expectation], timeout: 1.0)
+    }
+    
+    func testDeleteImage_Success() {
+        let expectation = XCTestExpectation(description: "Delete image")
+        service.deleteImage(url: "https://example.com/images/test.jpg") { error in
+            XCTAssertNil(error)
+            expectation.fulfill()
+        }
+        
+        wait(for: [expectation], timeout: 1.0)
+        XCTAssertEqual(mockStorage.referenceForURLCalledWith, "https://example.com/images/test.jpg")
+        XCTAssertTrue(mockStorage.mockReference.didDelete)
     }
 }

@@ -1,3 +1,10 @@
+//
+//  ProfileView.swift
+//  P14_DA-iOS_Eventorias
+//
+//  Created by Mathieu ARRIO on 15/06/2026.
+//
+
 import SwiftUI
 import PhotosUI
 
