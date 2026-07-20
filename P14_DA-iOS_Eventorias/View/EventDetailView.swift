@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Observation
 
 struct EventDetailView: View {
     let event: Event
@@ -39,28 +38,42 @@ struct EventDetailView: View {
                     
                     // Image Principale
                     if let imageUrl = event.coverImageUrl, let url = URL(string: imageUrl) {
-                        AsyncImage(url: url) { phase in
-                            switch phase {
-                            case .empty:
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .aspectRatio(1, contentMode: .fill) // Carré approximatif
-                                    .overlay(ProgressView())
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                            case .failure:
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .aspectRatio(1, contentMode: .fit)
-                                    .overlay(Image(systemName: "photo").foregroundColor(.gray))
-                            @unknown default:
-                                EmptyView()
+                        if let cachedImage = LocalImageCache.shared.getImage(for: imageUrl) {
+                            Image(uiImage: cachedImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 250)
+                                .clipped()
+                                .cornerRadius(12)
+                                .shadow(radius: 5)
+                        } else {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .empty:
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .aspectRatio(1, contentMode: .fill) // Carré approximatif
+                                        .overlay(ProgressView())
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                case .failure:
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .aspectRatio(1, contentMode: .fill)
+                                        .overlay(Image(systemName: "photo").foregroundColor(.gray))
+                                @unknown default:
+                                    EmptyView()
+                                }
                             }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 250)
+                            .clipped()
+                            .cornerRadius(12)
+                            .shadow(radius: 5)
                         }
-                        .cornerRadius(16)
-                        .clipped()
                     } else {
                         Rectangle()
                             .fill(Color.gray.opacity(0.3))
@@ -192,53 +205,6 @@ struct EventDetailView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This action cannot be undone.")
-        }
-    }
-}
-@MainActor
-@Observable
-final class EventDetailViewModel {
-    var isDeleting = false
-    var errorMessage: String?
-    
-    private let eventRepository: EventRepositoryProtocol
-    private let storageService: ImageStorageServiceProtocol
-    
-    init(eventRepository: EventRepositoryProtocol? = nil,
-         storageService: ImageStorageServiceProtocol? = nil) {
-        self.eventRepository = eventRepository ?? FirebaseEventRepository()
-        self.storageService = storageService ?? FirebaseImageStorageService()
-    }
-    
-    /// Deletes the event and reports whether it succeeded via the completion handler.
-    /// The associated cover image is removed on a best-effort basis once the event document
-    /// is gone; a failure to clean up the image does not fail the deletion.
-    func deleteEvent(_ event: Event, completion: @escaping (Bool) -> Void) {
-        guard event.id != nil else {
-            errorMessage = "Cannot delete an event without an identifier."
-            completion(false)
-            return
-        }
-        
-        isDeleting = true
-        errorMessage = nil
-        
-        eventRepository.deleteEvent(event) { [weak self] error in
-            Task { @MainActor in
-                guard let self = self else { return }
-                self.isDeleting = false
-                if let error = error {
-                    self.errorMessage = "Failed to delete event: \(error.localizedDescription)"
-                    completion(false)
-                    return
-                }
-                
-                // Best-effort cleanup of the associated cover image.
-                if let imageUrl = event.coverImageUrl, !imageUrl.isEmpty {
-                    self.storageService.deleteImage(url: imageUrl) { _ in }
-                }
-                completion(true)
-            }
         }
     }
 }

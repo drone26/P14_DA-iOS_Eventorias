@@ -95,8 +95,22 @@ struct ProfileView: View {
                         Button("Cancel", role: .cancel) {}
                     }
                     .fullScreenCover(isPresented: $showImagePicker) {
+                        #if DEBUG
+                        if ProcessInfo.processInfo.arguments.contains("-UITestMockImagePicker") {
+                            Color.clear
+                                .onAppear {
+                                    // Instantly "pick" a mock image to trigger onChange
+                                    selectedImage = UIImage(systemName: "star")
+                                    showImagePicker = false
+                                }
+                        } else {
+                            ImagePicker(selectedImage: $selectedImage, sourceType: imageSource)
+                                .ignoresSafeArea()
+                        }
+                        #else
                         ImagePicker(selectedImage: $selectedImage, sourceType: imageSource)
                             .ignoresSafeArea()
+                        #endif
                     }
                     .onChange(of: selectedImage) { _, newImage in
                         if let image = newImage {

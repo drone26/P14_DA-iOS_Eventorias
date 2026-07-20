@@ -22,6 +22,11 @@ struct EventRowView: View {
                         .font(.headline)
                         .foregroundColor(.white)
                     
+                    Text(event.address)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .lineLimit(1)
+                    
                     Text(event.date, style: .date)
                         .font(.subheadline)
                         .foregroundColor(.gray)
@@ -33,24 +38,32 @@ struct EventRowView: View {
             
             // Right content: Cover Image
             if let imageUrl = event.coverImageUrl, let url = URL(string: imageUrl) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        Color.gray.opacity(0.3)
-                            .overlay(ProgressView())
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    case .failure:
-                        Color.gray.opacity(0.3)
-                            .overlay(Image(systemName: "exclamationmark.triangle").foregroundColor(.red))
-                    @unknown default:
-                        EmptyView()
+                if let cachedImage = LocalImageCache.shared.getImage(for: imageUrl) {
+                    Image(uiImage: cachedImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 120)
+                        .clipped()
+                } else {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            Color.gray.opacity(0.3)
+                                .overlay(ProgressView())
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        case .failure:
+                            Color.gray.opacity(0.3)
+                                .overlay(Image(systemName: "exclamationmark.triangle").foregroundColor(.red))
+                        @unknown default:
+                            EmptyView()
+                        }
                     }
+                    .frame(width: 120)
+                    .clipped()
                 }
-                .frame(width: 120)
-                .clipped()
             } else {
                 Color.gray.opacity(0.3)
                     .frame(width: 120)
@@ -135,4 +148,19 @@ struct CreatorAvatarView: View {
     EventRowView(event: Event(title: "Music festival", description: "Awesome music", date: Date(), address: "123 Street", creatorId: "user1", coverImageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=400"))
         .padding()
         .background(Color.black)
+}
+
+final class LocalImageCache {
+    static let shared = LocalImageCache()
+    private var cache = NSCache<NSString, UIImage>()
+    
+    private init() {}
+    
+    func setImage(_ image: UIImage, for urlString: String) {
+        cache.setObject(image, forKey: urlString as NSString)
+    }
+    
+    func getImage(for urlString: String) -> UIImage? {
+        return cache.object(forKey: urlString as NSString)
+    }
 }

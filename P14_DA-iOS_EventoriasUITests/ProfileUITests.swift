@@ -229,6 +229,45 @@ final class ProfileUITests: XCTestCase {
         // Keyboard should be dismissed, meaning we are back to viewing
         XCTAssertFalse(app.keyboards.count > 0, "Keyboard should be dismissed after tapping Done/Return")
     }
+    
+    func testProfile_AvatarSelectionAndUpload() throws {
+        // Relaunch app with mock image picker
+        app.terminate()
+        app.launchArguments.append("-UITestMockImagePicker")
+        app.launch()
+        
+        loginIfNeeded(app: app)
+        sleep(3)
+        openProfileTab(app: app)
+        
+        let avatarBtn = app.buttons["profile_avatar_button"]
+        XCTAssertTrue(avatarBtn.waitForExistence(timeout: 15))
+        
+        let cameraOpt = app.buttons["Camera"]
+        for _ in 1...6 {
+            avatarBtn.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            if cameraOpt.waitForExistence(timeout: 3) { break }
+        }
+        
+        XCTAssertTrue(cameraOpt.exists, "Confirmation dialog should appear")
+        
+        let photoOpt = app.buttons["Photo Library"]
+        XCTAssertTrue(photoOpt.exists, "Photo Library option should exist")
+        
+        // Tap Photo Library. The mock will instantly set selectedImage and dismiss.
+        photoOpt.tap()
+        
+        // Wait for the upload to complete.
+        // During upload, isLoading = true, which removes the sign out button and shifts layout.
+        // We wait for the sign out button to reappear instead of checking avatarBtn's hittability,
+        // which avoids XCTest "Failed to determine hittability" crashes during layout shifts.
+        let signOutButton = app.buttons["sign_out_button"]
+        XCTAssertTrue(signOutButton.waitForExistence(timeout: 15), "Sign out button should reappear after mock upload completes")
+        
+        // Ensure the layout settles
+        sleep(1)
+        XCTAssertTrue(signOutButton.isHittable, "Sign out button should be hittable after layout settles")
+    }
 }
 
 extension XCTestCase {

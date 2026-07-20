@@ -43,7 +43,7 @@
 		39504AAE2FDAAD3B00F05940 /* P14_DA-iOS_Eventorias.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "P14_DA-iOS_Eventorias.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		39504AD42FDAAEA800F05940 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		39D5BA682FFF7B9700AFBBD6 /* P14_DA-iOS_EventoriasUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "P14_DA-iOS_EventoriasUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		39D856DB3007BD1500A4A3A6 /* P14_DA-iOS_Eventorias.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = file; path = "P14_DA-iOS_Eventorias.xctestplan"; sourceTree = "<group>"; };
+		39D856DB3007BD1500A4A3A6 /* P14_DA-iOS_Eventorias.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "P14_DA-iOS_Eventorias.xctestplan"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */

@@ -26,7 +26,14 @@ final class DefaultGeocodingService: @unchecked Sendable, GeocodingServiceProtoc
                 return
             }
             if let mapItem = response?.mapItems.first {
-                completion(mapItem.name ?? address, nil)
+                if let fullAddress = mapItem.addressRepresentations?.fullAddress(includingRegion: true, singleLine: true) {
+                    completion(fullAddress, nil)
+                } else if let fullAddress = mapItem.address?.fullAddress {
+                    let singleLineAddress = fullAddress.replacingOccurrences(of: "\n", with: ", ")
+                    completion(singleLineAddress, nil)
+                } else {
+                    completion(mapItem.name ?? address, nil)
+                }
             } else {
                 completion(nil, nil)
             }
@@ -144,6 +151,10 @@ class EventCreationViewModel {
                         self.isLoading = false
                         completion(false)
                         return
+                    }
+                    
+                    if let image = self.selectedImage, let urlStr = url?.absoluteString {
+                        LocalImageCache.shared.setImage(image, for: urlStr)
                     }
                     
                     self.saveEventToFirestore(title: title, description: description, date: date, address: address, creatorId: creatorId, imageUrl: url?.absoluteString, completion: completion)

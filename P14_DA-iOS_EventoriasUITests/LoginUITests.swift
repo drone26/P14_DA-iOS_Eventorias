@@ -230,6 +230,50 @@ final class LoginUITests: XCTestCase {
         XCTAssertTrue(eventsTab.waitForExistence(timeout: 10))
     }
 
+    func testEmailLogin_NextButtonMovesFocusToPassword() throws {
+        let signInButton = app.buttons["sign_in_with_email_button"]
+        if !signInButton.waitForExistence(timeout: 10) {
+            let profileTab = app.tabBars.buttons["Profile"]
+            if profileTab.waitForExistence(timeout: 10) {
+                sleep(1)
+                profileTab.tap()
+                sleep(3)
+
+                let signOutButton = app.buttons["sign_out_button"]
+                if signOutButton.waitForExistence(timeout: 15) {
+                    sleep(1)
+                    signOutButton.tap()
+                    sleep(2)
+                }
+            }
+        }
+
+        XCTAssertTrue(signInButton.waitForExistence(timeout: 10))
+        signInButton.tap()
+        sleep(1)
+
+        let emailField = app.textFields["email_field"]
+        XCTAssertTrue(emailField.waitForExistence(timeout: 10))
+        emailField.tap()
+        // The trailing newline fires the field's submit action (.onSubmit), which
+        // advances focus to the password field. Using "\n" is reliable even when the
+        // simulator's software keyboard is hidden (hardware keyboard connected).
+        emailField.typeText("focus@example.com\n")
+
+        // Focus should now be in the password field: typing lands there without tapping it
+        app.typeText("SuperSecretP@ssword1234567890!")
+
+        // If the password field received the text, both fields are non-empty and the button enables
+        let authButton = app.buttons["authenticate_button"]
+        XCTAssertTrue(authButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(authButton.isEnabled, "Password field should have received text after 'next' moved focus, enabling the button")
+
+        // The secure field itself should report a non-empty value
+        let passwordField = app.secureTextFields["password_field"]
+        let passwordValue = passwordField.value as? String ?? ""
+        XCTAssertFalse(passwordValue.isEmpty, "Password field should contain the typed text after focus advanced")
+    }
+
     func testEmailLogin_RegistrationFlow() throws {
         let signInButton = app.buttons["sign_in_with_email_button"]
         if !signInButton.waitForExistence(timeout: 10) {
