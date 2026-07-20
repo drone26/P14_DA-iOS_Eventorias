@@ -84,31 +84,33 @@ struct CreatorAvatarView: View {
 
     @State private var avatarUrl: String?
     @State private var hasLoaded = false
+    @State private var uiImage: UIImage?
 
     var body: some View {
         Group {
-            if let avatarUrl, let url = URL(string: avatarUrl) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    case .empty:
-                        placeholder.overlay(ProgressView())
-                    case .failure:
-                        placeholder
-                    @unknown default:
-                        placeholder
-                    }
-                }
+            if let image = uiImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else if avatarUrl != nil {
+                placeholder.overlay(ProgressView())
             } else {
                 placeholder
             }
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
-        .onAppear { loadAvatarIfNeeded() }
+        .task(id: creatorId) { loadAvatarIfNeeded() }
+        .onReceive(NotificationCenter.default.publisher(for: .avatarDidChange)) { notification in
+            guard let uid = notification.userInfo?["uid"] as? String, uid == creatorId else { return }
+            if let newUrl = notification.userInfo?["avatarUrl"] as? String {
+                avatarUrl = newUrl
+                loadImage(from: newUrl)
+            } else {
+                hasLoaded = false
+                loadAvatarIfNeeded()
+            }
+        }
     }
 
     private var placeholder: some View {
@@ -139,8 +141,27 @@ struct CreatorAvatarView: View {
         #endif
 
         FirebaseUserRepository().getProfile(uid: creatorId) { profile, _ in
-            avatarUrl = profile?.avatarUrl
+            if let newUrl = profile?.avatarUrl {
+                self.avatarUrl = newUrl
+                self.loadImage(from: newUrl)
+            }
         }
+    }
+
+    private func loadImage(from urlString: String) {
+        if let cached = LocalImageCache.shared.getImage(for: urlString) {
+            self.uiImage = cached
+            return
+        }
+        guard let url = URL(string: urlString) else { return }
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            if let data = data, let image = UIImage(data: data) {
+                LocalImageCache.shared.setImage(image, for: urlString)
+                DispatchQueue.main.async {
+                    self.uiImage = image
+                }
+            }
+        }.resume()
     }
 }
 
