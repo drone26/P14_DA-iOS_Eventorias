@@ -39,6 +39,21 @@ class EventListViewModel {
             errorMessage = "An error occurred while loading events."
             return
         }
+        
+        if ProcessInfo.processInfo.arguments.contains("-UITestEventRowMockData") {
+            isLoading = false
+            events = [
+                Event(id: UUID().uuidString, title: "Valid Event", description: "Desc", date: Date(), address: "123", creatorId: "creator_valid", coverImageUrl: "https://via.placeholder.com/150"),
+                Event(id: UUID().uuidString, title: "Invalid Image Event", description: "Desc", date: Date(), address: "123", creatorId: "creator_invalid", coverImageUrl: "invalid_url"),
+                Event(id: UUID().uuidString, title: "No Image Event", description: "Desc", date: Date(), address: "123", creatorId: "creator_none", coverImageUrl: nil)
+            ]
+            return
+        }
+        if ProcessInfo.processInfo.arguments.contains("-UITestEmptyStateMockData") {
+            isLoading = false
+            events = []
+            return
+        }
         #endif
         
         isLoading = true

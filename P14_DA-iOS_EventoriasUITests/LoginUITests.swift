@@ -6,6 +6,7 @@ final class LoginUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
+        app.launchArguments.append("-UseFirebaseEmulator")
         app.launch()
         
         let eventsTab = app.tabBars.buttons["Events"]
@@ -294,5 +295,94 @@ final class LoginUITests: XCTestCase {
         
         // Both fields are initially empty, so the button should be disabled
         XCTAssertFalse(authButton.isEnabled)
+    }
+
+    func testEmailLogin_ErrorState_WeakPassword() throws {
+        let signInButton = app.buttons["sign_in_with_email_button"]
+        if !signInButton.waitForExistence(timeout: 5) {
+            let profileTab = app.tabBars.buttons["Profile"]
+            if profileTab.waitForExistence(timeout: 5) {
+                sleep(1)
+                profileTab.tap()
+                sleep(2)
+                
+                let signOutButton = app.buttons["sign_out_button"]
+                if signOutButton.waitForExistence(timeout: 10) {
+                    sleep(1)
+                    signOutButton.tap()
+                    sleep(2)
+                }
+            }
+        }
+        
+        XCTAssertTrue(signInButton.waitForExistence(timeout: 10))
+        signInButton.tap()
+        sleep(1)
+        
+        let toggleRegister = app.buttons["toggle_register_button"]
+        XCTAssertTrue(toggleRegister.waitForExistence(timeout: 10))
+        toggleRegister.tap() // Switch to Register
+        
+        let emailField = app.textFields["email_field"]
+        emailField.tap()
+        emailField.typeText("test@example.com")
+        
+        let passwordField = app.secureTextFields["password_field"]
+        passwordField.tap()
+        passwordField.typeText("short")
+        
+        if app.keyboards.buttons["Done"].exists {
+            app.keyboards.buttons["Done"].tap()
+        } else if app.keyboards.buttons["return"].exists {
+            app.keyboards.buttons["return"].tap()
+        }
+        
+        app.buttons["authenticate_button"].tap()
+        
+        let errorText = app.staticTexts["error_message_text"]
+        XCTAssertTrue(errorText.waitForExistence(timeout: 5))
+        XCTAssertTrue(errorText.label.contains("au moins 20 caractères") || errorText.label.contains("too weak"))
+    }
+
+    func testEmailLogin_ErrorState_InvalidCredentials() throws {
+        let signInButton = app.buttons["sign_in_with_email_button"]
+        if !signInButton.waitForExistence(timeout: 5) {
+            let profileTab = app.tabBars.buttons["Profile"]
+            if profileTab.waitForExistence(timeout: 5) {
+                sleep(1)
+                profileTab.tap()
+                sleep(2)
+                
+                let signOutButton = app.buttons["sign_out_button"]
+                if signOutButton.waitForExistence(timeout: 10) {
+                    sleep(1)
+                    signOutButton.tap()
+                    sleep(2)
+                }
+            }
+        }
+        
+        XCTAssertTrue(signInButton.waitForExistence(timeout: 10))
+        signInButton.tap()
+        sleep(1)
+        
+        let emailField = app.textFields["email_field"]
+        emailField.tap()
+        emailField.typeText("nonexistentuser12345@example.com")
+        
+        let passwordField = app.secureTextFields["password_field"]
+        passwordField.tap()
+        passwordField.typeText("WrongPassword123!")
+        
+        if app.keyboards.buttons["Done"].exists {
+            app.keyboards.buttons["Done"].tap()
+        } else if app.keyboards.buttons["return"].exists {
+            app.keyboards.buttons["return"].tap()
+        }
+        
+        app.buttons["authenticate_button"].tap()
+        
+        let errorText = app.staticTexts["error_message_text"]
+        XCTAssertTrue(errorText.waitForExistence(timeout: 10))
     }
 }

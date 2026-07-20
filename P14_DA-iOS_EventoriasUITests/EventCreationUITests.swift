@@ -6,6 +6,7 @@ final class EventCreationUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
+        app.launchArguments.append("-UseFirebaseEmulator")
         app.launch()
         // The event creation form lives in a ScrollView that collapses to a ~90px viewport in
         // landscape, pushing fields and the Save button off-screen. Force portrait so the form

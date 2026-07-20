@@ -113,6 +113,18 @@ struct CreatorAvatarView: View {
         hasLoaded = true
         // Firebase isn't configured in SwiftUI previews; avoid touching it there.
         guard ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" else { return }
+        
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-UITestMockAvatarValid") {
+            avatarUrl = "https://via.placeholder.com/150"
+            return
+        }
+        if ProcessInfo.processInfo.arguments.contains("-UITestMockAvatarInvalid") {
+            avatarUrl = "invalid_url"
+            return
+        }
+        #endif
+
         FirebaseUserRepository().getProfile(uid: creatorId) { profile, _ in
             avatarUrl = profile?.avatarUrl
         }

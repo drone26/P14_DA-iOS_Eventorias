@@ -20,6 +20,7 @@ final class P14_DA_iOS_EventoriasUITestsLaunchTests: XCTestCase {
     @MainActor
     func testLaunch() throws {
         let app = XCUIApplication()
+        app.launchArguments.append("-UseFirebaseEmulator")
         app.launch()
 
         // Insert steps here to perform after app launch but before taking a screenshot,
