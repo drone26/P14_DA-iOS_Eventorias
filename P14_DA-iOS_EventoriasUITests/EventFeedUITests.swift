@@ -6,6 +6,7 @@ final class EventFeedUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
+        app.launchArguments.append("-UseFirebaseEmulator")
         app.launch()
     }
 
@@ -34,7 +35,13 @@ final class EventFeedUITests: XCTestCase {
     }
 
     func testEventFeed_DetailNavigation() throws {
+        XCUIDevice.shared.orientation = .portrait
         loginIfNeeded(app: app)
+        
+        // Create an event to ensure the feed is not empty
+        let title = "UITest Detail \(UUID().uuidString.prefix(6))"
+        createEvent(titled: title)
+        
         let eventsTab = app.tabBars.buttons["Events"]
         XCTAssertTrue(eventsTab.waitForExistence(timeout: 5))
         eventsTab.tap()
@@ -42,8 +49,15 @@ final class EventFeedUITests: XCTestCase {
         // Wait for the feed to load
         sleep(2)
         
-        // Tap the first available event row
-        let eventRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'event_row_'")).firstMatch
+        // Isolate the created event via search so its row is at the top
+        let searchBar = app.searchFields.firstMatch
+        XCTAssertTrue(searchBar.waitForExistence(timeout: 10), "Search field should exist")
+        searchBar.tap()
+        searchBar.typeText(title)
+        sleep(2) // let the filtered fetch complete
+        
+        // Tap the created event row
+        let eventRow = app.buttons["event_row_\(title)"]
         XCTAssertTrue(eventRow.waitForExistence(timeout: 10), "Event row should exist")
         
         // Ensure the row is hittable by scrolling to make it visible

@@ -2,13 +2,14 @@ import XCTest
 
 final class ProfileUITests: XCTestCase {
     var app: XCUIApplication!
-
+    
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
+        app.launchArguments.append("-UseFirebaseEmulator")
         app.launch()
     }
-
+    
     func testProfile_StaticElements() throws {
         loginIfNeeded(app: app)
         
@@ -60,7 +61,7 @@ final class ProfileUITests: XCTestCase {
         let signOutButton = app.buttons["sign_out_button"]
         XCTAssertTrue(signOutButton.exists, "Sign out button should be visible")
     }
-
+    
     func testProfile_Flow() throws {
         loginIfNeeded(app: app)
         
@@ -97,7 +98,7 @@ final class ProfileUITests: XCTestCase {
         let signInButton = app.buttons["sign_in_with_email_button"]
         XCTAssertTrue(signInButton.waitForExistence(timeout: 5), "Sign in button should appear after logout")
     }
-
+    
     func testProfile_AvatarSelectionDialogAndPicker() throws {
         loginIfNeeded(app: app)
         
@@ -140,6 +141,93 @@ final class ProfileUITests: XCTestCase {
         // Verify we're back on profile view
         XCTAssertTrue(avatarBtn.waitForExistence(timeout: 10), "Avatar button should exist after dismissing picker")
         XCTAssertTrue(avatarBtn.exists, "Avatar button should exist after returning to profile")
+    }
+    
+    func testProfile_AvatarSelectionDialogCancel() throws {
+        loginIfNeeded(app: app)
+        sleep(3)
+        openProfileTab(app: app)
+        
+        let avatarBtn = app.buttons["profile_avatar_button"]
+        XCTAssertTrue(avatarBtn.waitForExistence(timeout: 15))
+        
+        let cameraOpt = app.buttons["Camera"]
+        for _ in 1...6 {
+            avatarBtn.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            if cameraOpt.waitForExistence(timeout: 3) { break }
+        }
+        
+        XCTAssertTrue(cameraOpt.exists, "Confirmation dialog should appear")
+        
+        let cancelOpt = app.buttons["Cancel"]
+        if cancelOpt.waitForExistence(timeout: 2) {
+            cancelOpt.tap()
+            
+            let disappearTime = Date()
+            while cancelOpt.exists && Date().timeIntervalSince(disappearTime) < 3 { usleep(100_000) }
+            XCTAssertFalse(cancelOpt.exists, "Dialog should be dismissed")
+        } else {
+            // Dismiss by tapping outside. Use 0.25 to safely avoid the Dynamic Island/Status Bar.
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).tap()
+            
+            // Coordinate taps don't wait for animations, so we must manually poll for dismissal.
+            let disappearTime = Date()
+            while cameraOpt.exists && Date().timeIntervalSince(disappearTime) < 3 { usleep(100_000) }
+            XCTAssertFalse(cameraOpt.exists, "Dialog should be dismissed")
+        }
+    }
+    
+    func testProfile_AvatarSelectionCameraOption() throws {
+        loginIfNeeded(app: app)
+        sleep(3)
+        openProfileTab(app: app)
+        
+        let avatarBtn = app.buttons["profile_avatar_button"]
+        XCTAssertTrue(avatarBtn.waitForExistence(timeout: 15))
+        
+        let cameraOpt = app.buttons["Camera"]
+        for _ in 1...6 {
+            avatarBtn.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            if cameraOpt.waitForExistence(timeout: 3) { break }
+        }
+        
+        XCTAssertTrue(cameraOpt.exists, "Camera option should appear in dialog")
+        cameraOpt.tap()
+        
+        // We either get the Image Picker or a permission alert.
+        // We just verify we can dismiss whatever is presented if there's a cancel button.
+        let cancelBtn = app.buttons["Cancel"]
+        if cancelBtn.waitForExistence(timeout: 10) {
+            cancelBtn.tap()
+        } else {
+            app.swipeDown()
+            sleep(1)
+        }
+    }
+    
+    func testProfile_EditNameSubmitWithReturnKey() throws {
+        loginIfNeeded(app: app)
+        sleep(3)
+        openProfileTab(app: app)
+        
+        let nameField = app.textFields["profile_name_field"]
+        XCTAssertTrue(nameField.waitForExistence(timeout: 10))
+        nameField.tap()
+        nameField.typeText(" Return")
+        
+        let doneButton = app.keyboards.buttons["Done"]
+        if doneButton.exists {
+            doneButton.tap()
+        } else {
+            let returnButton = app.keyboards.buttons["return"]
+            if returnButton.exists {
+                returnButton.tap()
+            }
+        }
+        
+        sleep(1)
+        // Keyboard should be dismissed, meaning we are back to viewing
+        XCTAssertFalse(app.keyboards.count > 0, "Keyboard should be dismissed after tapping Done/Return")
     }
 }
 

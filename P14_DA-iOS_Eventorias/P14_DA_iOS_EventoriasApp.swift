@@ -7,6 +7,10 @@
 
 import SwiftUI
 import FirebaseCore
+import FirebaseAuth
+import FirebaseFirestore
+import FirebaseDatabase
+import FirebaseStorage
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
@@ -25,6 +29,21 @@ struct YourApp: App {
 
     init() {
         FirebaseApp.configure()
+        
+        if CommandLine.arguments.contains("-UseFirebaseEmulator") {
+            Auth.auth().useEmulator(withHost: "127.0.0.1", port: 9099)
+            
+            let settings = Firestore.firestore().settings
+            settings.host = "127.0.0.1:8080"
+            settings.cacheSettings = MemoryCacheSettings()
+            settings.isSSLEnabled = false
+            Firestore.firestore().settings = settings
+            
+            Database.database().useEmulator(withHost: "127.0.0.1", port: 9000)
+            
+            Storage.storage().useEmulator(withHost: "127.0.0.1", port: 9199)
+        }
+        
         _authManager = State(wrappedValue: AuthManager())
     }
 
