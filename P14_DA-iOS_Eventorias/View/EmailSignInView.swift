@@ -10,13 +10,18 @@ import SwiftUI
 struct EmailSignInView: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var viewModel = EmailSignInViewModel()
-    
+    @FocusState private var focusedField: Field?
+
+    private enum Field {
+        case email, password
+    }
+
     var body: some View {
         ZStack {
             Color(red: 0.12, green: 0.12, blue: 0.14)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    focusedField = nil
                 }
             
             VStack(spacing: 24) {
@@ -37,7 +42,11 @@ struct EmailSignInView: View {
                         .accentColor(.red)
                         .accessibilityIdentifier("email_field")
                         .submitLabel(.next)
-                    
+                        .focused($focusedField, equals: .email)
+                        .onSubmit {
+                            focusedField = .password
+                        }
+
                     SecureField("", text: $viewModel.password, prompt: Text("Password").foregroundColor(.white.opacity(0.6)))
                         .padding()
                         .background(Color(white: 0.2))
@@ -46,8 +55,9 @@ struct EmailSignInView: View {
                         .accentColor(.red)
                         .accessibilityIdentifier("password_field")
                         .submitLabel(.done)
+                        .focused($focusedField, equals: .password)
                         .onSubmit {
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            focusedField = nil
                         }
                 }
                 .padding(.horizontal, 24)
@@ -62,7 +72,7 @@ struct EmailSignInView: View {
                 }
                 
                 Button(action: {
-                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    focusedField = nil
                     viewModel.authenticate()
                 }) {
                     if viewModel.isLoading {

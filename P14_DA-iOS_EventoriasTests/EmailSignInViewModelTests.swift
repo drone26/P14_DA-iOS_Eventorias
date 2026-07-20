@@ -13,191 +13,221 @@ import FirebaseAuth
 class EmailSignInViewModelTests: XCTestCase {
     var viewModel: EmailSignInViewModel!
     var mockAuthService: MockAuthService!
-    
+
     override func setUp() {
         super.setUp()
         mockAuthService = MockAuthService()
         viewModel = EmailSignInViewModel(authService: mockAuthService)
     }
-    
+
     func testAuthenticate_SignIn_Success() async {
+        // Given
         viewModel.email = "test@example.com"
         viewModel.password = "password"
         viewModel.isRegistering = false
-        
+
         mockAuthService.signInResult = nil // success is nil error
-        
+
+        // When
         viewModel.authenticate()
-        
+
         try? await Task.sleep(nanoseconds: 100_000_000)
-        
+
+        // Then
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertTrue(viewModel.errorMessage.isEmpty)
     }
 
     func testAuthenticate_SignIn_Failure() async {
+        // Given
         viewModel.email = "test@example.com"
         viewModel.password = "wrongpassword"
         viewModel.isRegistering = false
-        
+
         let error = NSError(domain: AuthErrorDomain, code: AuthErrorCode.wrongPassword.rawValue, userInfo: nil)
         mockAuthService.signInResult = .failure(error)
-        
+
+        // When
         viewModel.authenticate()
-        
+
         try? await Task.sleep(nanoseconds: 100_000_000)
-        
+
+        // Then
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertEqual(viewModel.errorMessage, "Email ou mot de passe incorrect.")
     }
 
     func testAuthenticate_Register_Success() async {
+        // Given
         viewModel.email = "test@example.com"
         viewModel.password = "StrongPass1!" // Needs 20+ chars? No, the validation says > 20 chars! wait
         // Let's check validatePassword in EmailSignInViewModel.swift: count < 20.
         viewModel.password = "SuperStrongPassword123!" // 23 chars
         viewModel.isRegistering = true
-        
+
         mockAuthService.createUserResult = nil
-        
+
+        // When
         viewModel.authenticate()
-        
+
         try? await Task.sleep(nanoseconds: 100_000_000)
-        
+
+        // Then
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertTrue(viewModel.errorMessage.isEmpty)
     }
 
     func testAuthenticate_Register_WeakPassword() async {
+        // Given
         viewModel.email = "test@example.com"
         viewModel.password = "weak"
         viewModel.isRegistering = true
-        
+
+        // When
         viewModel.authenticate()
-        
+
+        // Then
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertEqual(viewModel.errorMessage, "Le mot de passe doit contenir au moins 20 caractères.")
     }
-    
+
     func testToggleRegistering() {
+        // Given
         XCTAssertFalse(viewModel.isRegistering)
         viewModel.errorMessage = "Some error"
-        
+
+        // When
         viewModel.toggleRegistering()
-        
+
+        // Then
         XCTAssertTrue(viewModel.isRegistering)
         XCTAssertTrue(viewModel.errorMessage.isEmpty)
     }
-    
+
     // MARK: - Register error path & handleError mappings
-    
+
     func testAuthenticate_Register_Failure_EmailAlreadyInUse() async {
+        // Given
         viewModel.email = "test@example.com"
         viewModel.password = "SuperStrongPassword123!"
         viewModel.isRegistering = true
-        
+
         mockAuthService.createUserResult = .failure(authError(.emailAlreadyInUse))
-        
+
+        // When
         viewModel.authenticate()
         try? await Task.sleep(nanoseconds: 100_000_000)
-        
+
+        // Then
         XCTAssertFalse(viewModel.isLoading)
         XCTAssertEqual(viewModel.errorMessage, "Un compte existe déjà pour cette adresse email.")
     }
-    
+
     func testHandleError_WeakPassword() async {
         await assertSignInError(.weakPassword, message: "Le mot de passe est trop faible. Il doit contenir au moins 20 caractères.")
     }
-    
+
     func testHandleError_InvalidEmail() async {
         await assertSignInError(.invalidEmail, message: "L'adresse email n'est pas valide.")
     }
-    
+
     func testHandleError_UserNotFound() async {
         await assertSignInError(.userNotFound, message: "Email ou mot de passe incorrect.")
     }
-    
+
     func testHandleError_InternalError() async {
         await assertSignInError(.internalError, message: "Une erreur interne s'est produite. Veuillez réessayer.")
     }
-    
+
     func testHandleError_UnhandledAuthCode_UsesLocalizedDescription() async {
+        // Given
         // A valid AuthErrorCode that the switch does not special-case → default branch.
         let error = authError(.tooManyRequests)
         viewModel.isRegistering = false
         mockAuthService.signInResult = .failure(error)
-        
+
+        // When
         viewModel.authenticate()
         try? await Task.sleep(nanoseconds: 100_000_000)
-        
+
+        // Then
         XCTAssertEqual(viewModel.errorMessage, error.localizedDescription)
     }
-    
+
     func testHandleError_NonAuthError_UsesLocalizedDescription() async {
+        // Given
         // A code that maps to no AuthErrorCode → else branch.
         let error = NSError(domain: "CustomDomain", code: 999_999, userInfo: [NSLocalizedDescriptionKey: "Custom failure"])
         viewModel.isRegistering = false
         mockAuthService.signInResult = .failure(error)
-        
+
+        // When
         viewModel.authenticate()
         try? await Task.sleep(nanoseconds: 100_000_000)
-        
+
+        // Then
         XCTAssertEqual(viewModel.errorMessage, "Custom failure")
     }
-    
+
     // MARK: - Password validation rules
-    
+
     func testValidatePassword_TooLong() {
         assertRegisterValidation(String(repeating: "a", count: 4097),
                                  message: "Le mot de passe ne peut excéder 4096 caractères.")
     }
-    
+
     func testValidatePassword_MissingUppercase() {
         assertRegisterValidation("abcdefghij1234567890!",
                                  message: "Le mot de passe doit contenir au moins une lettre majuscule.")
     }
-    
+
     func testValidatePassword_MissingLowercase() {
         assertRegisterValidation("ABCDEFGHIJ1234567890!",
                                  message: "Le mot de passe doit contenir au moins une lettre minuscule.")
     }
-    
+
     func testValidatePassword_MissingDigit() {
         assertRegisterValidation("AbcdefghijKlmnopqrst!",
                                  message: "Le mot de passe doit contenir au moins un chiffre.")
     }
-    
+
     func testValidatePassword_MissingSpecialCharacter() {
         assertRegisterValidation("Abcdefghij1234567890",
                                  message: "Le mot de passe doit contenir au moins un caractère spécial.")
     }
-    
+
     // MARK: - Helpers
-    
+
     private func authError(_ code: AuthErrorCode) -> NSError {
         NSError(domain: AuthErrorDomain, code: code.rawValue, userInfo: nil)
     }
-    
+
     private func assertSignInError(_ code: AuthErrorCode, message: String,
                                    file: StaticString = #filePath, line: UInt = #line) async {
+        // Given
         viewModel.isRegistering = false
         mockAuthService.signInResult = .failure(authError(code))
-        
+
+        // When
         viewModel.authenticate()
         try? await Task.sleep(nanoseconds: 100_000_000)
-        
+
+        // Then
         XCTAssertFalse(viewModel.isLoading, file: file, line: line)
         XCTAssertEqual(viewModel.errorMessage, message, file: file, line: line)
     }
-    
+
     private func assertRegisterValidation(_ password: String, message: String,
                                           file: StaticString = #filePath, line: UInt = #line) {
+        // Given
         viewModel.email = "test@example.com"
         viewModel.password = password
         viewModel.isRegistering = true
-        
+
+        // When
         viewModel.authenticate()
-        
+
+        // Then
         // Validation fails before any network call, so loading never starts.
         XCTAssertFalse(viewModel.isLoading, file: file, line: line)
         XCTAssertEqual(viewModel.errorMessage, message, file: file, line: line)
