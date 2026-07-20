@@ -12,6 +12,11 @@ import FirebaseStorage
 import Observation
 import UIKit
 
+extension Notification.Name {
+    /// Posted after a user's avatar has been uploaded and persisted, with `userInfo["uid"]`.
+    static let avatarDidChange = Notification.Name("avatarDidChange")
+}
+
 @MainActor
 @Observable
 class ProfileViewModel {
@@ -143,6 +148,13 @@ class ProfileViewModel {
                 
                 if let avatarUrl = url?.absoluteString {
                     self.profile?.avatarUrl = avatarUrl
+                    // Broadcast the new URL so other views (e.g. the event list) refresh immediately,
+                    // without depending on the Firestore write completing first.
+                    NotificationCenter.default.post(
+                        name: .avatarDidChange,
+                        object: nil,
+                        userInfo: ["uid": uid, "avatarUrl": avatarUrl]
+                    )
                     self.userRepository.updateProfile(uid: uid, data: ["avatarUrl": avatarUrl]) { _ in }
                 }
             }
