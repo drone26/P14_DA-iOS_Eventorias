@@ -49,13 +49,11 @@ struct YourApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationView {
-                if authManager.isAuthenticated {
-                    ContentView()
-                        .environment(authManager)
-                } else {
-                    SignInView()
-                }
+            if authManager.isAuthenticated {
+                ContentView()
+                    .environment(authManager)
+            } else {
+                SignInView()
             }
         }
     }

@@ -18,7 +18,7 @@ struct EmailSignInView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.12, green: 0.12, blue: 0.14)
+            AppTheme.background
                 .ignoresSafeArea()
                 .onTapGesture {
                     focusedField = nil
@@ -27,18 +27,18 @@ struct EmailSignInView: View {
             VStack(spacing: 24) {
                 Text(viewModel.isRegistering ? "Create Account" : "Sign In")
                     .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .bold()
+                    .foregroundStyle(.white)
                     .padding(.top, 40)
-                
+
                 VStack(spacing: 16) {
-                    TextField("", text: $viewModel.email, prompt: Text("Email").foregroundColor(.white.opacity(0.6)))
+                    TextField("", text: $viewModel.email, prompt: Text("Email").foregroundStyle(.white.opacity(0.6)))
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
                         .padding()
-                        .background(Color(white: 0.2))
-                        .cornerRadius(8)
-                        .foregroundColor(.white)
+                        .background(AppTheme.rowBackground)
+                        .clipShape(.rect(cornerRadius: 8))
+                        .foregroundStyle(.white)
                         .accentColor(.red)
                         .accessibilityIdentifier("email_field")
                         .submitLabel(.next)
@@ -47,11 +47,11 @@ struct EmailSignInView: View {
                             focusedField = .password
                         }
 
-                    SecureField("", text: $viewModel.password, prompt: Text("Password").foregroundColor(.white.opacity(0.6)))
+                    SecureField("", text: $viewModel.password, prompt: Text("Password").foregroundStyle(.white.opacity(0.6)))
                         .padding()
-                        .background(Color(white: 0.2))
-                        .cornerRadius(8)
-                        .foregroundColor(.white)
+                        .background(AppTheme.rowBackground)
+                        .clipShape(.rect(cornerRadius: 8))
+                        .foregroundStyle(.white)
                         .accentColor(.red)
                         .accessibilityIdentifier("password_field")
                         .submitLabel(.done)
@@ -61,16 +61,16 @@ struct EmailSignInView: View {
                         }
                 }
                 .padding(.horizontal, 24)
-                
+
                 if !viewModel.errorMessage.isEmpty {
                     Text(viewModel.errorMessage)
-                        .foregroundColor(.red)
+                        .foregroundStyle(.red)
                         .font(.footnote)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
                         .accessibilityIdentifier("error_message_text")
                 }
-                
+
                 Button(action: {
                     focusedField = nil
                     viewModel.authenticate()
@@ -83,21 +83,21 @@ struct EmailSignInView: View {
                             .fontWeight(.semibold)
                     }
                 }
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color(red: 0.85, green: 0.1, blue: 0.15))
-                .cornerRadius(4)
+                .background(AppTheme.accent)
+                .clipShape(.rect(cornerRadius: 4))
                 .padding(.horizontal, 24)
                 .padding(.top, 8)
                 .disabled(viewModel.isLoading || viewModel.email.isEmpty || viewModel.password.isEmpty)
                 .accessibilityIdentifier("authenticate_button")
-                
+
                 Button(action: {
                     viewModel.toggleRegistering()
                 }) {
                     Text(viewModel.isRegistering ? "Already have an account? Sign In" : "Don't have an account? Sign Up")
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .font(.subheadline)
                 }
                 .padding(.top, 16)

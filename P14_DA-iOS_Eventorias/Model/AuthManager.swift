@@ -13,7 +13,9 @@ import Observation
 class AuthManager {
     var isAuthenticated: Bool = false
     var currentUser: AppUserProtocol?
-    
+    var isShowingSignOutError = false
+    var signOutErrorMessage: String?
+
     private let authService: AuthServiceProtocol
     private var authStateListenerHandle: AuthStateDidChangeListenerHandle?
     
@@ -35,7 +37,8 @@ class AuthManager {
         do {
             try authService.signOut()
         } catch {
-            print("Error signing out: \(error.localizedDescription)")
+            signOutErrorMessage = error.localizedDescription
+            isShowingSignOutError = true
         }
     }
 }

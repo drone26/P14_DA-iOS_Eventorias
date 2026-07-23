@@ -10,12 +10,12 @@ import SwiftUI
 struct EventListView: View {
     @State private var viewModel = EventListViewModel()
     @State private var showCreateEvent = false
-    
+
     var body: some View {
         ZStack {
-            Color(red: 0.12, green: 0.12, blue: 0.14)
+            AppTheme.background
                 .ignoresSafeArea()
-            
+
             VStack {
                 // Sorting button row
                 HStack {
@@ -34,51 +34,51 @@ struct EventListView: View {
                             }
                         }
                     } label: {
-                        HStack {
-                            Image(systemName: "arrow.up.arrow.down")
-                            Text("Sorting")
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color(white: 0.3))
-                        .foregroundColor(.white)
-                        .cornerRadius(20)
+                        Label("Sorting", systemImage: "arrow.up.arrow.down")
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(AppTheme.fieldBackground)
+                            .foregroundStyle(.white)
+                            .clipShape(.rect(cornerRadius: 20))
                     }
                     .accessibilityIdentifier("sort_menu")
-                    
+
                     Spacer()
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 8)
-                
+
                 if viewModel.isLoading && viewModel.events.isEmpty {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if viewModel.errorMessage != nil {
-                    ErrorStateView {
-                        viewModel.fetchEvents()
+                    ContentUnavailableView {
+                        Label("Error", systemImage: "exclamationmark.triangle")
+                    } description: {
+                        Text("An error has occured,\nplease try again later")
+                    } actions: {
+                        Button("Try again") {
+                            viewModel.fetchEvents()
+                        }
+                        .accessibilityIdentifier("error_retry_button")
                     }
+                    .accessibilityIdentifier("error_state_view")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if viewModel.events.isEmpty {
-                    VStack(spacing: 20) {
-                        Text("Aucun événement trouvé.")
-                            .foregroundColor(.gray)
-                        
-                        Button("Générer des données de test") {
+                    ContentUnavailableView {
+                        Label("Aucun événement trouvé.", systemImage: "calendar.badge.exclamationmark")
+                    } actions: {
+                        Button("Add Mock Data") {
                             viewModel.addMockData()
                         }
-                        .padding()
-                        .background(Color(red: 0.85, green: 0.1, blue: 0.15))
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 16) {
                             ForEach(viewModel.events) { event in
-                                NavigationLink(destination: EventDetailView(event: event)) {
+                                NavigationLink(value: event) {
                                     EventRowView(event: event)
                                         .padding(.horizontal)
                                 }
@@ -90,7 +90,7 @@ struct EventListView: View {
                     }
                 }
             }
-            
+
             // Floating Action Button
             VStack {
                 Spacer()
@@ -101,9 +101,9 @@ struct EventListView: View {
                     }) {
                         Image(systemName: "plus")
                             .font(.title.weight(.semibold))
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)
                             .frame(width: 60, height: 60)
-                            .background(Color(red: 0.85, green: 0.1, blue: 0.15))
+                            .background(AppTheme.accent)
                             .clipShape(Circle())
                             .shadow(radius: 4, x: 0, y: 4)
                     }
@@ -122,48 +122,12 @@ struct EventListView: View {
         .onAppear {
             viewModel.fetchEvents()
         }
+        .navigationDestination(for: Event.self) { event in
+            EventDetailView(event: event)
+        }
         .navigationDestination(isPresented: $showCreateEvent) {
             EventCreationView()
         }
-    }
-}
-
-/// Full-screen error placeholder shown when event loading fails, with a retry action.
-struct ErrorStateView: View {
-    let retryAction: () -> Void
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "exclamationmark")
-                .font(.system(size: 36, weight: .bold))
-                .foregroundColor(.white)
-                .frame(width: 90, height: 90)
-                .background(Color(white: 0.35))
-                .clipShape(Circle())
-
-            Text("Error")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-
-            Text("An error has occured,\nplease try again later")
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-
-            Button(action: retryAction) {
-                Text("Try again")
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 40)
-                    .padding(.vertical, 16)
-                    .background(Color(red: 0.85, green: 0.1, blue: 0.15))
-                    .cornerRadius(8)
-            }
-            .accessibilityIdentifier("error_retry_button")
-            .padding(.top, 8)
-        }
-        .padding()
-        .accessibilityIdentifier("error_state_view")
     }
 }
 
@@ -171,10 +135,4 @@ struct ErrorStateView: View {
     NavigationStack {
         EventListView()
     }
-}
-
-#Preview("Error State") {
-    ErrorStateView {}
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(red: 0.12, green: 0.12, blue: 0.14))
 }

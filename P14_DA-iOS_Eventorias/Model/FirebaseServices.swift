@@ -36,7 +36,7 @@ final class FirebaseEventRepository: @unchecked Sendable, EventRepositoryProtoco
         
         let listener = query.addSnapshotListener { snapshot, error in
             Task { @MainActor in
-                if let error = error {
+                if let error {
                     completion(nil, error)
                     return
                 }
@@ -92,11 +92,11 @@ final class FirebaseUserRepository: @unchecked Sendable, UserRepositoryProtocol 
     func getProfile(uid: String, completion: @escaping (UserProfile?, Error?) -> Void) {
         db.collection("users").document(uid).getDocument { snapshot, error in
             Task { @MainActor in
-                if let error = error {
+                if let error {
                     completion(nil, error)
                     return
                 }
-                if let snapshot = snapshot, snapshot.exists {
+                if let snapshot, snapshot.exists {
                     do {
                         let profile = try snapshot.data(as: UserProfile.self)
                         completion(profile, nil)
@@ -138,7 +138,7 @@ final class FirebaseImageStorageService: @unchecked Sendable, ImageStorageServic
         metadata.contentType = "image/jpeg"
         
         storageRef.putData(imageData, metadata: metadata) { _, error in
-            if let error = error {
+            if let error {
                 completion(nil, error)
                 return
             }

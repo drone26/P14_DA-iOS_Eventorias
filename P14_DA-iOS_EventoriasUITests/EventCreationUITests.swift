@@ -52,7 +52,7 @@ final class EventCreationUITests: XCTestCase {
         
         // Fill the description last. Its keyboard stays up, but SwiftUI's keyboard avoidance
         // keeps the Save button (below the ScrollView) reachable above the keyboard.
-        let descField = app.textViews["event_description_field"]
+        let descField = app.textFields["event_description_field"]
         XCTAssertTrue(descField.waitForExistence(timeout: 10), "Description field should exist")
         XCTAssertTrue(waitForHittable(descField), "Description field should be hittable")
         descField.tap()

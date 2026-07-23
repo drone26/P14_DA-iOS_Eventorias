@@ -41,7 +41,7 @@ struct Event: Identifiable, Codable {
         let lowerText = text.lowercased()
         let chars = Array(lowerText)
         let length = chars.count
-        
+
         for i in 0..<length {
             var token = ""
             for j in i..<length {
@@ -52,5 +52,15 @@ struct Event: Identifiable, Codable {
             }
         }
         return Array(tokens)
+    }
+}
+
+extension Event: Hashable {
+    static func == (lhs: Event, rhs: Event) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }

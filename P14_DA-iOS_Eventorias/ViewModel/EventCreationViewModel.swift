@@ -21,7 +21,7 @@ final class DefaultGeocodingService: @unchecked Sendable, GeocodingServiceProtoc
         let search = MKLocalSearch(request: request)
         
         search.start { response, error in
-            if let error = error {
+            if let error {
                 completion(nil, error)
                 return
             }
@@ -29,7 +29,7 @@ final class DefaultGeocodingService: @unchecked Sendable, GeocodingServiceProtoc
                 if let fullAddress = mapItem.addressRepresentations?.fullAddress(includingRegion: true, singleLine: true) {
                     completion(fullAddress, nil)
                 } else if let fullAddress = mapItem.address?.fullAddress {
-                    let singleLineAddress = fullAddress.replacingOccurrences(of: "\n", with: ", ")
+                    let singleLineAddress = fullAddress.replacing("\n", with: ", ")
                     completion(singleLineAddress, nil)
                 } else {
                     completion(mapItem.name ?? address, nil)
@@ -46,8 +46,8 @@ final class DefaultGeocodingService: @unchecked Sendable, GeocodingServiceProtoc
 class EventCreationViewModel {
     var title = ""
     var description = ""
-    var date = Date()
-    var time = Date()
+    var date = Date.now
+    var time = Date.now
     var address = ""
     
     var selectedImage: UIImage?
@@ -103,16 +103,16 @@ class EventCreationViewModel {
         
         geocodingService.validateAddress(address) { [weak self] validatedAddress, error in
             Task { @MainActor in
-                guard let self = self else { return }
-                
-                if let error = error {
+                guard let self else { return }
+
+                if let error {
                     self.errorMessage = "Address not found: \(error.localizedDescription)"
                     self.isLoading = false
                     completion(false)
                     return
                 }
-                
-                guard let validatedAddress = validatedAddress else {
+
+                guard let validatedAddress else {
                     self.errorMessage = "Could not validate address."
                     self.isLoading = false
                     completion(false)
@@ -143,10 +143,10 @@ class EventCreationViewModel {
             let path = "event_images/\(UUID().uuidString).jpg"
             
             storageService.uploadImage(imageData, path: path) { [weak self] url, error in
-                guard let self = self else { return }
-                
+                guard let self else { return }
+
                 Task { @MainActor in
-                    if let error = error {
+                    if let error {
                         self.errorMessage = "Failed to upload image: \(error.localizedDescription)"
                         self.isLoading = false
                         completion(false)
@@ -177,7 +177,7 @@ class EventCreationViewModel {
         
         eventRepository.addEvent(event) { [weak self] error in
             Task { @MainActor in
-                if let error = error {
+                if let error {
                     self?.errorMessage = "Failed to save event: \(error.localizedDescription)"
                     self?.isLoading = false
                     completion(false)

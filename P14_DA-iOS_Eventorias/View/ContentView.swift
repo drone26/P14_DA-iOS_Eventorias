@@ -12,23 +12,21 @@ struct ContentView: View {
     
     var body: some View {
         TabView {
-            NavigationStack {
-                EventListView()
+            Tab("Events", systemImage: "calendar") {
+                NavigationStack {
+                    EventListView()
+                }
+                .accessibilityIdentifier("events_tab")
             }
-            .tabItem {
-                Label("Events", systemImage: "calendar")
+
+            Tab("Profile", systemImage: "person") {
+                NavigationStack {
+                    ProfileView()
+                }
+                .accessibilityIdentifier("profile_tab")
             }
-            .accessibilityIdentifier("events_tab")
-            
-            NavigationStack {
-                ProfileView()
-            }
-            .tabItem {
-                Label("Profile", systemImage: "person")
-            }
-            .accessibilityIdentifier("profile_tab")
         }
-        .accentColor(Color(red: 0.85, green: 0.1, blue: 0.15))
+        .accentColor(AppTheme.accent)
         .preferredColorScheme(.dark)
     }
 }

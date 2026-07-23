@@ -40,7 +40,7 @@ final class EventDetailViewModel {
             Task { @MainActor in
                 guard let self = self else { return }
                 self.isDeleting = false
-                if let error = error {
+                if let error {
                     self.errorMessage = "Failed to delete event: \(error.localizedDescription)"
                     completion(false)
                     return

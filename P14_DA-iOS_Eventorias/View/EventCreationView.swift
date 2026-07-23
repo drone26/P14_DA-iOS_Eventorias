@@ -18,7 +18,7 @@ struct EventCreationView: View {
     
     var body: some View {
         ZStack {
-            Color(red: 0.12, green: 0.12, blue: 0.14)
+            AppTheme.background
                 .ignoresSafeArea()
             
             VStack(spacing: 20) {
@@ -28,37 +28,35 @@ struct EventCreationView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Title")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundStyle(.gray)
                             TextField("New event", text: $viewModel.title)
-                                .foregroundColor(.white)
+                                .foregroundStyle(.white)
                                 .accessibilityIdentifier("event_title_field")
                         }
                         .padding()
-                        .background(Color(white: 0.3))
-                        .cornerRadius(8)
-                        
+                        .background(AppTheme.fieldBackground)
+                        .clipShape(.rect(cornerRadius: 8))
+
                         // Description
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Description")
                                 .font(.caption)
-                                .foregroundColor(.gray)
-                            TextEditor(text: $viewModel.description)
-                                .frame(height: 100)
-                                .scrollContentBackground(.hidden)
-                                .background(Color.clear)
-                                .foregroundColor(.white)
+                                .foregroundStyle(.gray)
+                            TextField("Description", text: $viewModel.description, axis: .vertical)
+                                .lineLimit(5...)
+                                .foregroundStyle(.white)
                                 .accessibilityIdentifier("event_description_field")
                         }
                         .padding()
-                        .background(Color(white: 0.3))
-                        .cornerRadius(8)
-                        
+                        .background(AppTheme.fieldBackground)
+                        .clipShape(.rect(cornerRadius: 8))
+
                         // Date and Time
                         HStack(spacing: 16) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Date")
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundStyle(.gray)
                                 DatePicker("", selection: $viewModel.date, displayedComponents: .date)
                                     .labelsHidden()
                                     .colorScheme(.dark)
@@ -66,13 +64,13 @@ struct EventCreationView: View {
                                     .accessibilityIdentifier("event_date_picker")
                             }
                             .padding()
-                            .background(Color(white: 0.3))
-                            .cornerRadius(8)
-                            
+                            .background(AppTheme.fieldBackground)
+                            .clipShape(.rect(cornerRadius: 8))
+
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Time")
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundStyle(.gray)
                                 DatePicker("", selection: $viewModel.time, displayedComponents: .hourAndMinute)
                                     .labelsHidden()
                                     .colorScheme(.dark)
@@ -80,44 +78,44 @@ struct EventCreationView: View {
                                     .accessibilityIdentifier("event_time_picker")
                             }
                             .padding()
-                            .background(Color(white: 0.3))
-                            .cornerRadius(8)
+                            .background(AppTheme.fieldBackground)
+                            .clipShape(.rect(cornerRadius: 8))
                         }
-                        
+
                         // Address
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Address")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundStyle(.gray)
                             TextField("Enter full address", text: $viewModel.address)
-                                .foregroundColor(.white)
+                                .foregroundStyle(.white)
                                 .accessibilityIdentifier("event_address_field")
                         }
                         .padding()
-                        .background(Color(white: 0.3))
-                        .cornerRadius(8)
-                        
+                        .background(AppTheme.fieldBackground)
+                        .clipShape(.rect(cornerRadius: 8))
+
                         // Image selection buttons
                         HStack(spacing: 16) {
-                            Button(action: {
+                            Button("Take Photo", systemImage: "camera", action: {
                                 showCamera = true
-                            }) {
-                                Image(systemName: "camera")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(.black)
-                                    .frame(width: 60, height: 60)
-                                    .background(Color.white)
-                                    .cornerRadius(16)
-                            }
+                            })
+                            .labelStyle(.iconOnly)
+                            .font(.system(size: 24))
+                            .foregroundStyle(.black)
+                            .frame(width: 60, height: 60)
+                            .background(Color.white)
+                            .clipShape(.rect(cornerRadius: 16))
                             .accessibilityIdentifier("camera_button")
-                            
+
                             PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                                Image(systemName: "paperclip")
+                                Label("Choose from Library", systemImage: "paperclip")
+                                    .labelStyle(.iconOnly)
                                     .font(.system(size: 24))
-                                    .foregroundColor(.white)
+                                    .foregroundStyle(.white)
                                     .frame(width: 60, height: 60)
-                                    .background(Color(red: 0.85, green: 0.1, blue: 0.15))
-                                    .cornerRadius(16)
+                                    .background(AppTheme.accent)
+                                    .clipShape(.rect(cornerRadius: 16))
                             }
                             .accessibilityIdentifier("photo_library_button")
                             .onChange(of: selectedPhotoItem) { _, newItem in
@@ -137,13 +135,13 @@ struct EventCreationView: View {
                                 .resizable()
                                 .scaledToFill()
                                 .frame(height: 200)
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                                .clipShape(.rect(cornerRadius: 16))
                                 .padding(.top, 16)
                         }
-                        
+
                         if let error = viewModel.errorMessage {
                             Text(error)
-                                .foregroundColor(.red)
+                                .foregroundStyle(.red)
                                 .font(.caption)
                                 .multilineTextAlignment(.center)
                                 .padding(.top, 8)
@@ -169,11 +167,11 @@ struct EventCreationView: View {
                                 .font(.headline)
                         }
                     }
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color(red: 0.85, green: 0.1, blue: 0.15))
-                    .cornerRadius(8)
+                    .background(AppTheme.accent)
+                    .clipShape(.rect(cornerRadius: 8))
                 }
                 .disabled(viewModel.isLoading)
                 .accessibilityIdentifier("save_event_button")
@@ -190,7 +188,7 @@ struct EventCreationView: View {
 }
 
 #Preview {
-    NavigationView {
+    NavigationStack {
         EventCreationView()
     }
 }

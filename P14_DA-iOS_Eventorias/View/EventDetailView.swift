@@ -31,7 +31,7 @@ struct EventDetailView: View {
     
     var body: some View {
         ZStack {
-            Color(red: 0.12, green: 0.12, blue: 0.14).ignoresSafeArea()
+            AppTheme.background.ignoresSafeArea()
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
@@ -45,7 +45,7 @@ struct EventDetailView: View {
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 250)
                                 .clipped()
-                                .cornerRadius(12)
+                                .clipShape(.rect(cornerRadius: 12))
                                 .shadow(radius: 5)
                         } else {
                             AsyncImage(url: url) { phase in
@@ -63,7 +63,7 @@ struct EventDetailView: View {
                                     Rectangle()
                                         .fill(Color.gray.opacity(0.3))
                                         .aspectRatio(1, contentMode: .fill)
-                                        .overlay(Image(systemName: "photo").foregroundColor(.gray))
+                                        .overlay(Image(systemName: "photo").foregroundStyle(.gray))
                                 @unknown default:
                                     EmptyView()
                                 }
@@ -71,57 +71,59 @@ struct EventDetailView: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: 250)
                             .clipped()
-                            .cornerRadius(12)
+                            .clipShape(.rect(cornerRadius: 12))
                             .shadow(radius: 5)
                         }
                     } else {
                         Rectangle()
                             .fill(Color.gray.opacity(0.3))
                             .aspectRatio(1, contentMode: .fit)
-                            .cornerRadius(16)
-                            .overlay(Image(systemName: "photo").foregroundColor(.gray))
+                            .clipShape(.rect(cornerRadius: 16))
+                            .overlay(Image(systemName: "photo").foregroundStyle(.gray))
                     }
-                    
+
                     // Informations (Date, Heure, Avatar)
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 12) {
-                            HStack {
+                            Label {
+                                Text(event.date, style: .date)
+                            } icon: {
                                 Image(systemName: "calendar")
                                     .frame(width: 20)
-                                Text(event.date, style: .date)
                             }
-                            HStack {
+                            Label {
+                                Text(event.date, style: .time)
+                            } icon: {
                                 Image(systemName: "clock")
                                     .frame(width: 20)
-                                Text(event.date, style: .time)
                             }
                         }
                         .font(.title3)
-                        .foregroundColor(.white)
-                        
+                        .foregroundStyle(.white)
+
                         Spacer()
-                        
+
                         // Creator avatar
                         CreatorAvatarView(creatorId: event.creatorId, size: 60)
                     }
                     .padding(.top, 8)
-                    
+
                     // Description
                     Text(event.description)
                         .font(.body)
-                        .foregroundColor(.white.opacity(0.9))
+                        .foregroundStyle(.white.opacity(0.9))
                         .lineSpacing(4)
                         .padding(.top, 8)
                         .accessibilityIdentifier("event_detail_description")
-                    
+
                     // Adresse & Carte statique
                     HStack(alignment: .top, spacing: 16) {
                         Text(event.address)
                             .font(.subheadline)
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("event_detail_address")
-                        
+
                         if let mapUrl = staticMapUrl {
                             AsyncImage(url: mapUrl) { phase in
                                 switch phase {
@@ -136,19 +138,19 @@ struct EventDetailView: View {
                                 case .failure:
                                     Rectangle()
                                         .fill(Color.gray.opacity(0.3))
-                                        .overlay(Text("Map Error").font(.caption).foregroundColor(.gray))
+                                        .overlay(Text("Map Error").font(.caption).foregroundStyle(.gray))
                                 @unknown default:
                                     EmptyView()
                                 }
                             }
                             .frame(width: 140, height: 80)
-                            .cornerRadius(12)
+                            .clipShape(.rect(cornerRadius: 12))
                             .clipped()
                         } else {
                             Rectangle()
                                 .fill(Color.gray.opacity(0.3))
                                 .frame(width: 140, height: 80)
-                                .cornerRadius(12)
+                                .clipShape(.rect(cornerRadius: 12))
                         }
                     }
                     .padding(.top, 16)
@@ -158,12 +160,12 @@ struct EventDetailView: View {
                         if let error = viewModel.errorMessage {
                             Text(error)
                                 .font(.caption)
-                                .foregroundColor(.red)
+                                .foregroundStyle(.red)
                                 .multilineTextAlignment(.center)
                                 .frame(maxWidth: .infinity)
                                 .padding(.top, 24)
                         }
-                        
+
                         Button(role: .destructive) {
                             showDeleteConfirmation = true
                         } label: {
@@ -177,15 +179,28 @@ struct EventDetailView: View {
                                         .fontWeight(.semibold)
                                 }
                             }
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color(red: 0.85, green: 0.1, blue: 0.15))
-                            .cornerRadius(8)
+                            .background(AppTheme.accent)
+                            .clipShape(.rect(cornerRadius: 8))
                         }
                         .disabled(viewModel.isDeleting)
                         .accessibilityIdentifier("delete_event_button")
                         .padding(.top, viewModel.errorMessage == nil ? 24 : 8)
+                        .confirmationDialog("Delete this event?",
+                                            isPresented: $showDeleteConfirmation,
+                                            titleVisibility: .visible) {
+                            Button("Delete event", role: .destructive) {
+                                viewModel.deleteEvent(event) { success in
+                                    if success { dismiss() }
+                                }
+                            }
+                            .accessibilityIdentifier("confirm_delete_event_button")
+                            Button("Cancel", role: .cancel) {}
+                        } message: {
+                            Text("This action cannot be undone.")
+                        }
                     }
                 }
                 .padding()
@@ -193,19 +208,6 @@ struct EventDetailView: View {
         }
         .navigationTitle(event.title)
         .navigationBarTitleDisplayMode(.inline)
-        .confirmationDialog("Delete this event?",
-                            isPresented: $showDeleteConfirmation,
-                            titleVisibility: .visible) {
-            Button("Delete event", role: .destructive) {
-                viewModel.deleteEvent(event) { success in
-                    if success { dismiss() }
-                }
-            }
-            .accessibilityIdentifier("confirm_delete_event_button")
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This action cannot be undone.")
-        }
     }
 }
 

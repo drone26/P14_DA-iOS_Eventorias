@@ -42,14 +42,14 @@ class EmailSignInViewModel {
         if isRegistering {
             authService.createUser(withEmail: email, password: password) { [weak self] result, error in
                 self?.isLoading = false
-                if let error = error {
+                if let error {
                     self?.handleError(error)
                 }
             }
         } else {
             authService.signIn(withEmail: email, password: password) { [weak self] result, error in
                 self?.isLoading = false
-                if let error = error {
+                if let error {
                     self?.handleError(error)
                 }
             }

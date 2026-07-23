@@ -9,40 +9,41 @@ import SwiftUI
 import FirebaseAuth
 
 struct SignInView: View {
+    @State private var showEmailSignIn = false
+
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 // Dark background
-                Color(red: 0.12, green: 0.12, blue: 0.14)
+                AppTheme.background
                     .ignoresSafeArea()
-                
+
                 VStack(spacing: 40) {
                     Spacer()
-                    
+
                     VStack(spacing: 20) {
                         // Custom logo composition using SF Symbols
                         ZStack {
-                            Image("EventoriasLogo")
+                            Image(.eventoriasLogo)
                         }
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                     }
-                    
+
                     Spacer()
-                    
+
                     // Sign In Button
-                    NavigationLink(destination: EmailSignInView()) {
+                    Button(action: { showEmailSignIn = true }) {
                         HStack(spacing: 12) {
                             Image(systemName: "envelope.fill")
-                                .font(.system(size: 18))
-                            
+
                             Text("Sign in with email")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(.headline)
                         }
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color(red: 0.85, green: 0.1, blue: 0.15)) // Firebase red
-                        .cornerRadius(4)
+                        .background(AppTheme.accent) // Firebase red
+                        .clipShape(.rect(cornerRadius: 4))
                     }
                     .accessibilityIdentifier("sign_in_with_email_button")
                     .padding(.horizontal, 40)
@@ -50,6 +51,9 @@ struct SignInView: View {
                 }
             }
             .navigationBarHidden(true)
+            .navigationDestination(isPresented: $showEmailSignIn) {
+                EmailSignInView()
+            }
         }
     }
 }

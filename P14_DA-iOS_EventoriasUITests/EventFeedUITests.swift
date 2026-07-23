@@ -165,7 +165,7 @@ final class EventFeedUITests: XCTestCase {
         addressField.tap()
         addressField.typeText("Paris, France\n")
 
-        let descField = app.textViews["event_description_field"]
+        let descField = app.textFields["event_description_field"]
         XCTAssertTrue(descField.waitForExistence(timeout: 10), "Description field should exist")
         XCTAssertTrue(waitForHittable(descField), "Description field should be hittable")
         descField.tap()

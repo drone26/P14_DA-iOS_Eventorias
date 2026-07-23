@@ -19,8 +19,10 @@ struct ProfileView: View {
     @State private var selectedImage: UIImage?
     
     var body: some View {
+        @Bindable var viewModel = viewModel
+        @Bindable var authManager = authManager
         ZStack {
-            Color(red: 0.12, green: 0.12, blue: 0.14)
+            AppTheme.background
                 .ignoresSafeArea()
                 .onTapGesture {
                     isNameFocused = false
@@ -32,11 +34,11 @@ struct ProfileView: View {
                 HStack {
                     Text("User profile")
                         .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    
+                        .bold()
+                        .foregroundStyle(.white)
+
                     Spacer()
-                    
+
                     // Avatar
                     Button(action: {
                         showSourceSelector = true
@@ -56,7 +58,7 @@ struct ProfileView: View {
                                     case .failure:
                                         Circle()
                                             .fill(Color.gray.opacity(0.3))
-                                            .overlay(Image(systemName: "person.fill").foregroundColor(.gray))
+                                            .overlay(Image(systemName: "person.fill").foregroundStyle(.gray))
                                     @unknown default:
                                         EmptyView()
                                     }
@@ -67,21 +69,22 @@ struct ProfileView: View {
                                 Circle()
                                     .fill(Color.gray.opacity(0.3))
                                     .frame(width: 50, height: 50)
-                                    .overlay(Image(systemName: "person.fill").foregroundColor(.gray))
+                                    .overlay(Image(systemName: "person.fill").foregroundStyle(.gray))
                             }
-                            
+
                             // Edit icon badge
                             Circle()
-                                .fill(Color(red: 0.85, green: 0.1, blue: 0.15))
+                                .fill(AppTheme.accent)
                                 .frame(width: 16, height: 16)
                                 .overlay(
                                     Image(systemName: "pencil")
                                         .font(.system(size: 8, weight: .bold))
-                                        .foregroundColor(.white)
+                                        .foregroundStyle(.white)
                                 )
                                 .offset(x: 4, y: 4)
                         }
                     }
+                    .accessibilityLabel("Change profile photo")
                     .accessibilityIdentifier("profile_avatar_button")
                     .confirmationDialog("Choose Avatar", isPresented: $showSourceSelector, titleVisibility: .visible) {
                         Button("Camera") {
@@ -126,76 +129,71 @@ struct ProfileView: View {
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         .frame(maxWidth: .infinity)
                     Spacer()
-                } else {
+                } else if let profileBinding = Binding($viewModel.profile) {
                     // Name Field
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Name")
                             .font(.caption)
-                            .foregroundColor(.gray)
-                        TextField("Name", text: Binding(
-                            get: { viewModel.profile?.name ?? "" },
-                            set: { viewModel.profile?.name = $0 }
-                        ))
-                        .focused($isNameFocused)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .submitLabel(.done)
-                        .accessibilityIdentifier("profile_name_field")
-                        .onSubmit {
-                            isNameFocused = false
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        }
-                        .onChange(of: isNameFocused) { oldValue, newValue in
-                            if oldValue && !newValue {
-                                if let newName = viewModel.profile?.name {
-                                    viewModel.saveName(authManager: authManager, newName: newName)
+                            .foregroundStyle(.gray)
+                        TextField("Name", text: profileBinding.name)
+                            .focused($isNameFocused)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .submitLabel(.done)
+                            .accessibilityIdentifier("profile_name_field")
+                            .onSubmit {
+                                isNameFocused = false
+                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            }
+                            .onChange(of: isNameFocused) { oldValue, newValue in
+                                if oldValue && !newValue {
+                                    viewModel.saveName(authManager: authManager, newName: profileBinding.wrappedValue.name)
                                 }
                             }
-                        }
                     }
                     .padding()
-                    .background(Color(white: 0.3))
-                    .cornerRadius(8)
-                    
+                    .background(AppTheme.fieldBackground)
+                    .clipShape(.rect(cornerRadius: 8))
+
                     // Email Field
                     VStack(alignment: .leading, spacing: 4) {
                         Text("E-mail")
                             .font(.caption)
-                            .foregroundColor(.gray)
-                        Text(viewModel.profile?.email ?? "")
-                            .foregroundColor(.white)
+                            .foregroundStyle(.gray)
+                        Text(profileBinding.wrappedValue.email)
+                            .foregroundStyle(.white)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("profile_email_text")
                     }
                     .padding()
-                    .background(Color(white: 0.3))
-                    .cornerRadius(8)
-                    
+                    .background(AppTheme.fieldBackground)
+                    .clipShape(.rect(cornerRadius: 8))
+
                     // Notifications Toggle
-                    Toggle(isOn: Binding(
-                        get: { viewModel.profile?.notificationsEnabled ?? false },
-                        set: { newValue in viewModel.toggleNotifications(authManager: authManager, isOn: newValue) }
-                    )) {
+                    Toggle(isOn: profileBinding.notificationsEnabled) {
                         Text("Notifications")
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)
                     }
-                    .tint(Color(red: 0.85, green: 0.1, blue: 0.15))
+                    .tint(AppTheme.accent)
                     .padding(.top, 8)
                     .accessibilityIdentifier("profile_notifications_toggle")
-                    
+                    .onChange(of: profileBinding.wrappedValue.notificationsEnabled) { _, newValue in
+                        viewModel.toggleNotifications(authManager: authManager, isOn: newValue)
+                    }
+
                     Spacer()
-                    
+
                     // Sign Out Button
                     Button(action: {
                         authManager.signOut()
                     }) {
                         Text("Sign Out")
                             .fontWeight(.semibold)
-                            .foregroundColor(.white)
+                            .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color(red: 0.85, green: 0.1, blue: 0.15))
-                            .cornerRadius(8)
+                            .background(AppTheme.accent)
+                            .clipShape(.rect(cornerRadius: 8))
                     }
                     .accessibilityIdentifier("sign_out_button")
                     .padding(.bottom, 20)
@@ -205,6 +203,10 @@ struct ProfileView: View {
         }
         .onAppear {
             viewModel.fetchProfile(authManager: authManager)
+        }
+        .alert("Error", isPresented: $authManager.isShowingSignOutError) {
+        } message: {
+            Text(authManager.signOutErrorMessage ?? "")
         }
     }
 }

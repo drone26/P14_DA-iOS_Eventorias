@@ -43,9 +43,9 @@ class EventListViewModel {
         if ProcessInfo.processInfo.arguments.contains("-UITestEventRowMockData") {
             isLoading = false
             events = [
-                Event(id: UUID().uuidString, title: "Valid Event", description: "Desc", date: Date(), address: "123", creatorId: "creator_valid", coverImageUrl: "https://via.placeholder.com/150"),
-                Event(id: UUID().uuidString, title: "Invalid Image Event", description: "Desc", date: Date(), address: "123", creatorId: "creator_invalid", coverImageUrl: "invalid_url"),
-                Event(id: UUID().uuidString, title: "No Image Event", description: "Desc", date: Date(), address: "123", creatorId: "creator_none", coverImageUrl: nil)
+                Event(id: UUID().uuidString, title: "Valid Event", description: "Desc", date: Date.now, address: "123", creatorId: "creator_valid", coverImageUrl: "https://via.placeholder.com/150"),
+                Event(id: UUID().uuidString, title: "Invalid Image Event", description: "Desc", date: Date.now, address: "123", creatorId: "creator_invalid", coverImageUrl: "invalid_url"),
+                Event(id: UUID().uuidString, title: "No Image Event", description: "Desc", date: Date.now, address: "123", creatorId: "creator_none", coverImageUrl: nil)
             ]
             return
         }
@@ -65,12 +65,12 @@ class EventListViewModel {
             guard let self = self else { return }
             self.isLoading = false
             
-            if let error = error {
+            if let error {
                 self.errorMessage = "Erreur de chargement : \(error.localizedDescription)"
                 return
             }
-            
-            if let fetchedEvents = fetchedEvents {
+
+            if let fetchedEvents {
                 self.events = fetchedEvents
             } else {
                 self.events = []
@@ -84,16 +84,18 @@ class EventListViewModel {
     
     func addMockData() {
         let sampleEvents = [
-            Event(title: "Music festival", description: "A great music festival.", date: Date().addingTimeInterval(86400 * 10), address: "123 Music Ave, Clovis, CA 93612, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=400"),
-            Event(title: "Art exhibition", description: "Modern art exhibition.", date: Date().addingTimeInterval(86400 * 40), address: "456 Art St, New York, NY 10001, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&q=80&w=400"),
-            Event(title: "Tech conference", description: "Latest in tech.", date: Date().addingTimeInterval(86400 * 60), address: "789 Tech Blvd, San Francisco, CA 94107, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=400"),
-            Event(title: "Food fair", description: "Delicious food from around the world.", date: Date().addingTimeInterval(86400 * 80), address: "101 Food St, Chicago, IL 60601, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=400")
+            Event(title: "Music festival", description: "A great music festival.", date: Date.now.addingTimeInterval(86400 * 10), address: "123 Music Ave, Clovis, CA 93612, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=400"),
+            Event(title: "Art exhibition", description: "Modern art exhibition.", date: Date.now.addingTimeInterval(86400 * 40), address: "456 Art St, New York, NY 10001, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&q=80&w=400"),
+            Event(title: "Tech conference", description: "Latest in tech.", date: Date.now.addingTimeInterval(86400 * 60), address: "789 Tech Blvd, San Francisco, CA 94107, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=400"),
+            Event(title: "Food fair", description: "Delicious food from around the world.", date: Date.now.addingTimeInterval(86400 * 80), address: "101 Food St, Chicago, IL 60601, United States", creatorId: "mockId", coverImageUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=400")
         ]
         
         for event in sampleEvents {
-            eventRepository.addEvent(event) { error in
-                if let error = error {
-                    print("Error adding mock event: \(error)")
+            eventRepository.addEvent(event) { [weak self] error in
+                Task { @MainActor in
+                    if let error {
+                        self?.errorMessage = "Erreur lors de l'ajout des données de test : \(error.localizedDescription)"
+                    }
                 }
             }
         }

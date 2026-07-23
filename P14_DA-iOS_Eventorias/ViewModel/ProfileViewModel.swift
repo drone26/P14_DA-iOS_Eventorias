@@ -60,13 +60,13 @@ class ProfileViewModel {
                 guard let self = self else { return }
                 
                 self.isLoading = false
-                
-                if let error = error {
+
+                if let error {
                     self.errorMessage = "Erreur de chargement: \(error.localizedDescription)"
                     return
                 }
-                
-                if let profile = profile {
+
+                if let profile {
                     self.profile = profile
                 } else {
                     // Profile doesn't exist, create a default one
@@ -103,7 +103,7 @@ class ProfileViewModel {
         
         userRepository.updateProfile(uid: uid, data: ["notificationsEnabled": isOn]) { [weak self] error in
             Task { @MainActor [weak self] in
-                if let error = error {
+                if let error {
                     // Revert on error
                     self?.profile?.notificationsEnabled = !isOn
                     self?.errorMessage = "Erreur de synchronisation: \(error.localizedDescription)"
@@ -117,7 +117,7 @@ class ProfileViewModel {
         
         userRepository.updateProfile(uid: uid, data: ["name": newName]) { [weak self] error in
             Task { @MainActor [weak self] in
-                if let error = error {
+                if let error {
                     self?.errorMessage = "Erreur de sauvegarde: \(error.localizedDescription)"
                 }
             }
@@ -140,8 +140,8 @@ class ProfileViewModel {
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
                 self.isLoading = false
-                
-                if let error = error {
+
+                if let error {
                     self.errorMessage = "Échec de l'upload: \(error.localizedDescription)"
                     return
                 }
